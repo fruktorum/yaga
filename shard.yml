@@ -1,0 +1,29 @@
+name: yaga
+version: 0.1.0
+crystal: 0.34.0-dev
+
+authors:
+  - SlayerShadow <gawfast@gmail.com>
+
+targets:
+  yaga:
+    main: src/yaga.cr
+
+development_dependencies:
+  shainet:
+    github: NeuraLegion/shainet
+    branch: master
+
+  stumpy_png:
+    github: stumpycr/stumpy_png
+    branch: master
+
+  progress:
+    github: askn/progress
+    branch: master
+
+  matrix:
+    github: Exilor/matrix
+    branch: master
+
+license: MIT

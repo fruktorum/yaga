@@ -1,0 +1,13 @@
+/bin/
+/lib/
+/.shards/
+*.dwarf
+
+core
+Dockerfile
+shard.lock
+Thumbs.db
+
+.DS_Store
+
+!**/.keep

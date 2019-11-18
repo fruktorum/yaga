@@ -1,0 +1,7 @@
+FROM <find_an_Alpine_Crystal_or_build_it> AS build
+CMD [ "sh" ]
+
+COPY shard.* ./
+RUN shards install
+
+COPY . .

@@ -1,0 +1,17 @@
+bin
+lib
+
+core
+Dockerfile
+docker-compose.yml*
+Thumbs.db
+
+.dockerignore
+.DS_Store
+.editorconfig
+.env*
+.git*
+.shards
+
+**/*.dwarf
+**/*.md
