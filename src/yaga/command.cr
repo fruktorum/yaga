@@ -1,6 +1,5 @@
 # T - internal weights class
-# U - inputs class (almost always array)
-# V - activation class
+# U - activation class
 
 module YAGA
 

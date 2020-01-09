@@ -6,13 +6,23 @@ require "./genetic/neuron"
 require "./initialization"
 require "./training_method"
 
-population = YAGA::Population( Neuron, BitArray ).new [ 9_u16, 4_u16, 2_u16 ]
+#                     Generated genome class
+YAGA::Genome.compile( BinaryGenome,
+	#                 Inputs type (almost array)       Inputs size
+	                  BitArray                       , 9          ,
+
+	# Activator       Activations type (almost array)  Outputs size
+	{ Neuron   ,      BitArray                       , 4            },
+	{ Neuron   ,      BitArray                       , 2            }
+)
+
+population = YAGA::Population( BinaryGenome ).new
 data = Data.new
 
 simulations = data.train population, 30000
-bot = population.selection.first
-
 puts "\n\e[0;32mFinished!\e[0m"
+
+bot = population.selection.first
 
 p genome: bot.genome.genes
 p generation: bot.generation, max_fitness: bot.fitness, brain_size: bot.brain_size

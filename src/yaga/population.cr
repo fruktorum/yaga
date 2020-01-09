@@ -2,7 +2,7 @@ require "./bot"
 
 module YAGA
 
-	class Population( T, U )
+	class Population( T )
 		TOTAL_BOTS = 64_u16
 		TOP_BOTS = 8_u16
 
@@ -13,21 +13,21 @@ module YAGA
 
 		EXTRA_EVOLUTION_BOTS = TOTAL_BOTS - ( TOTAL_BOTS / TOP_BOTS ).to_u16 - 2 .. TOTAL_BOTS - 2
 
-		getter bots, selection, best_fitnesses_in_history
+		getter bots, selection, fitness_history
 
-		@bots : Array( Bot( T, U ) )
-		@selection : Array( Bot( T, U ) )
-		@best_fitnesses_in_history : Array( Float64 )
+		@bots : Array( Bot( T ) )
+		@selection : Array( Bot( T ) )
+		@fitness_history : Array( Float64 )
 		@generation : UInt64 = 0
 
-		def initialize( architecture : Array( UInt16 ) )
-			@bots = Array( Bot( T, U ) ).new( TOTAL_BOTS ){ Bot( T, U ).new architecture }
-			@selection = Array( Bot( T, U ) ).new( TOP_BOTS ){ Bot( T, U ).new architecture }
-			@best_fitnesses_in_history = Array( Float64 ).new SIMULATIONS_HISTORY
+		def initialize
+			@bots = Array( Bot( T ) ).new( TOTAL_BOTS ){ Bot( T ).new }
+			@selection = Array( Bot( T ) ).new( TOP_BOTS ){ Bot( T ).new }
+			@fitness_history = Array( Float64 ).new SIMULATIONS_HISTORY
 		end
 
-		def train( goal : Float64, simulations_cap : UInt64 = 10000_u64, &block : Proc( Bot( T, U ), Float64 ) ) : UInt64
-			@best_fitnesses_in_history.clear
+		def train( goal : Float64, simulations_cap : UInt64 = 10000_u64, &block : Proc( Bot( T ), Float64 ) ) : UInt64
+			@fitness_history.clear
 			training_simulation &block
 
 			while @selection.first.fitness < goal && @generation < simulations_cap
@@ -38,7 +38,7 @@ module YAGA
 			@generation
 		end
 
-		private def training_simulation( &block : Proc( Bot( T, U ), Float64 ) ) : Void
+		private def training_simulation( &block : Proc( Bot( T ), Float64 ) ) : Void
 			max_fitness = Float64::MIN
 
 			@bots.each{|bot|
@@ -49,8 +49,8 @@ module YAGA
 
 			prepare_selection
 
-			@best_fitnesses_in_history.shift if @best_fitnesses_in_history.size == SIMULATIONS_HISTORY
-			@best_fitnesses_in_history << max_fitness
+			@fitness_history.shift if @fitness_history.size == SIMULATIONS_HISTORY
+			@fitness_history << max_fitness
 		end
 
 		private def evolve : Void
@@ -128,10 +128,10 @@ module YAGA
 		end
 
 		private def bad_statistics? : Bool
-			min = max = @best_fitnesses_in_history.first
+			min = max = @fitness_history.first
 			min_index = max_index = 0
 
-			@best_fitnesses_in_history.each_with_index{|iteration, index|
+			@fitness_history.each_with_index{|iteration, index|
 				if min > iteration
 					min = iteration
 					min_index = index
