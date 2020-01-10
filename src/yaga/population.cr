@@ -8,7 +8,7 @@ module YAGA
 
 		SIMULATIONS_HISTORY = 200_u64
 
-		getter bots, selection, fitness_history
+		getter bots, selection, total_bots, fitness_history
 
 		@total_bots : UInt32
 		@selection_bots : UInt32

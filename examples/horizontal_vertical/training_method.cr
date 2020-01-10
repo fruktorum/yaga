@@ -2,7 +2,7 @@ class Data
 
 	def train( population : YAGA::Population, simulations : UInt64, log : Bool = false ) : UInt64
 		unless log
-			bar = ProgressBar.new( ( simulations * YAGA::Population::TOTAL_BOTS ).to_i )
+			bar = ProgressBar.new( ( simulations * population.total_bots ).to_i )
 			bar.incomplete = "-"
 			bar.complete = "#"
 			bar.width = 50

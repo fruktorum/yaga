@@ -34,16 +34,32 @@ module YAGA
 				end
 
 				def activate( inputs : {{ inputs_type }} ) : {{ layers.last[ 1 ] }}
-					inputs.each_with_index{ |value, input_index| @layers[ 0 ][ input_index ] = value }
+					inputs.each_with_index{|value, input_index|
+						layer = @layers[ 0 ].as {{ inputs_type }}
 
-					@genes.each_with_index{|gene, index|
-						input = @layers[ index ]
-						activation = @layers[ index + 1 ]
-
-						gene.each_with_index{|command, command_index| activation[ command_index ] = command.activate input }
+						if layer[ input_index ]?.nil?
+							layer << value if layer.responds_to? :<<
+						else
+							layer[ input_index ] = value
+						end
 					}
 
-					@layers.last
+					{% for layer, index in layers %}
+						gene = @genes[ {{ index }} ].as Array( {{ layer[ 0 ] }} )
+						input = @layers[ {{ index }} ].as {{ index == 0 ? inputs_type : layers[ index - 1 ][ 1 ] }}
+						activation = @layers[ {{ index + 1 }} ].as {{ layer[ 1 ] }}
+
+						gene.each_with_index{|command, command_index|
+							activated_command = command.activate input
+							if activation[ command_index ]?.nil?
+								activation << activated_command if activation.responds_to? :<<
+							else
+								activation[ command_index ] = activated_command
+							end
+						}
+					{% end %}
+
+					@layers.last.as {{ layers.last[ 1 ] }}
 				end
 			end
 		end

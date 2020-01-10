@@ -66,11 +66,11 @@ class Neuron < YAGA::Command( BitArray, BitArray, Bool )
 	@operation : Operation
 
 	def initialize( num_inputs : Int32 )
-		@weights = BitArray.new num_inputs
+		@weights = T.new num_inputs
 		@operation = Operation.new rand( Operation.names.size.to_u8 )
 	end
 
-	def activate( inputs : BitArray ) : Bool
+	def activate( inputs : U ) : V
 		result = false
 
 		@weights.each_with_index{|weight, index|
