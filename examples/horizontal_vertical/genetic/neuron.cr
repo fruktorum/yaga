@@ -1,5 +1,6 @@
 # Binary neuron operation.
 
+# Weights: BitArray
 # Inputs: BitArray
 # Outputs: Bool
 
@@ -51,7 +52,7 @@
 
 require "bit_array"
 
-class Neuron < YAGA::Command( BitArray, Bool )
+class Neuron < YAGA::Command( BitArray, BitArray, Bool )
 	enum Operation : UInt8
 		Mul
 		Sum
@@ -64,9 +65,9 @@ class Neuron < YAGA::Command( BitArray, Bool )
 
 	@operation : Operation
 
-	def initialize( inputs : Int32 )
+	def initialize( num_inputs : Int32 )
+		@weights = BitArray.new num_inputs
 		@operation = Operation.new rand( Operation.names.size.to_u8 )
-		super
 	end
 
 	def activate( inputs : BitArray ) : Bool
@@ -106,7 +107,7 @@ class Neuron < YAGA::Command( BitArray, Bool )
 
 	def replace( other : YAGA::Command ) : Void
 		@operation = other.operation
-		@weights.each_index{ |index| @weights[ index ] = other.weights[ index ] }
+		super
 	end
 
 	def size : UInt64
@@ -115,6 +116,6 @@ class Neuron < YAGA::Command( BitArray, Bool )
 	end
 
 	def same?( other : YAGA::Command ) : Bool
-		@weights == other.weights && @operation == other.operation
+		super && @operation == other.operation
 	end
 end
