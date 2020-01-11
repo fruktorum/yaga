@@ -19,7 +19,7 @@ class Data
 
 				activation = bot.activate( [ input ] )[ 0 ]
 				mse += ( ( output - activation ).to_big_f ** 2 ) / @inputs.size
-				p input: input, prediction: activation, actual: output, diff: output - activation, mse: mse, genome: bot.genome.genes.map( &.map( &.weights ) ) if log
+				p input: input, prediction: activation, actual: output, diff: output - activation, mse: mse, genome: bot.genome.chromosome_layers.map( &.map( &.genes ) ) if log
 			}
 
 			max_mse = mse if max_mse < mse

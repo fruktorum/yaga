@@ -17,7 +17,7 @@ Model builds the syntax tree of the function ![y = f(x)](https://latex.codecogs.
 
 ### Equation
 
-[Equation](genetic/equation.cr) is the syntax analyzer that builds a function graph from a "chromosome".
+[Equation](../../src/yaga/chromosomes/equation.cr) is the syntax analyzer that builds a function graph from a "chromosome".
 
 All available parts of a "chromosome" and building mechanics are shown in the source file. More detailed description how it works can be found in [articles](https://ruslanspivak.com/lsbasi-part7).
 

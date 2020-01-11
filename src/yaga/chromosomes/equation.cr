@@ -39,37 +39,45 @@
 # `...` is not equal to zero: if there were multiplication instead of sum,
 # result with zero would be wrong.
 
-require "./syntax_parser/tree"
+require "./equation_parser/tree"
 
-class Equation < YAGA::Command( Array( UInt8 ), Array( Float64 ), Float64 )
-	GENOME_SIZE = 64_u8
-	COMMAND_RANGE = Array( UInt8 ).new( 14 ){ |index| index.to_u8 }
+module YAGA
 
-	@tree : SyntaxParser::Tree
-	@genome_size : UInt8
-	@command_range : Array( UInt8 )
+	module Chromosomes
 
-	def initialize( num_inputs : Int32, @genome_size = GENOME_SIZE, @command_range = COMMAND_RANGE )
-		@weights = Array( UInt8 ).new( @genome_size ){ @command_range.sample }
-		@tree = SyntaxParser::Tree.new @weights
+		class Equation < Chromosome( Array( UInt8 ), Array( Float64 ), Float64 )
+			GENOME_SIZE = 64_u8
+			COMMAND_RANGE = Array( UInt8 ).new( 14 ){ |index| index.to_u8 }
+
+			@tree : EquationParser::Tree
+			@genome_size : UInt8
+			@command_range : Array( UInt8 )
+
+			def initialize( num_inputs : Int32, @genome_size = GENOME_SIZE, @command_range = COMMAND_RANGE )
+				@genes = Array( UInt8 ).new( @genome_size ){ @command_range.sample }
+				@tree = EquationParser::Tree.new @genes
+			end
+
+			def activate( inputs : Array( Float64 ) ) : Float64
+				@tree.eval inputs[ 0 ].to_i32
+			end
+
+			def randomize : Void
+				@genes.each_index{ |index| @genes[ index ] = @command_range.sample }
+				@tree.parse @genes
+			end
+
+			def mutate : Void
+				@genes[ rand @genome_size ] = @command_range.sample
+				@tree.parse @genes
+			end
+
+			def replace( other : YAGA::Chromosome ) : Void
+				@genes.each_index{ |index| @genes[ index ] = other.genes[ index ] }
+				@tree.parse @genes
+			end
+		end
+
 	end
 
-	def activate( inputs : Array( Float64 ) ) : Float64
-		@tree.eval inputs[ 0 ].to_i32
-	end
-
-	def randomize : Void
-		@weights.each_index{ |index| @weights[ index ] = @command_range.sample }
-		@tree.parse @weights
-	end
-
-	def mutate : Void
-		@weights[ rand @genome_size ] = @command_range.sample
-		@tree.parse @weights
-	end
-
-	def replace( other : YAGA::Command ) : Void
-		@weights.each_index{ |index| @weights[ index ] = other.weights[ index ] }
-		@tree.parse @weights
-	end
 end

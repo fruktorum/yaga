@@ -1,27 +1,27 @@
-require "./command"
+require "./chromosome"
 
 module YAGA
 
 	abstract class Genome( T, U )
-		MUTATION_SIZE = 2_u8
-		MUTATION_COMMANDS = 2_u8
+		MUTATION_LAYERS_COUNT = 2_u8
+		MUTATION_CHROMOSOMES_COUNT = 2_u8
 
-		CROSSOVER_SIZE = 3_u8
+		CROSSOVER_CHROMOSOMES_COUNT = 3_u8
 
 		macro compile( name, inputs_type, inputs_size, *layers )
 			class {{ name }} < YAGA::Genome( {{ inputs_type }}, {{ layers.last[ 1 ] }} )
-				alias GenesUnion = {% for layer, index in layers %} {{ layer[ 0 ] }} {% if index < layers.size - 1 %} | {% end %} {% end %}
+				alias ChromosomesUnion = {% for layer, index in layers %} {{ layer[ 0 ] }} {% if index < layers.size - 1 %} | {% end %} {% end %}
 				alias LayersUnion = {% for layer in layers %} {{ layer[ 1 ] }} | {% end %} {{ inputs_type }}
 
-				@genes : Array( Array( GenesUnion ) )
+				@chromosome_layers : Array( Array( ChromosomesUnion ) )
 				@layers : Array( LayersUnion )
 
 				def initialize
-					@genes = Array( Array( GenesUnion ) ).new
+					@chromosome_layers = Array( Array( ChromosomesUnion ) ).new
 					@layers = Array( LayersUnion ).new
 
 					{% for layer, index in layers %}
-						@genes << Array( {{ layer[ 0 ] }} ).new( {{ layer[ 2 ] }} ){ {{ layer[ 0 ] }}.new {{ index == 0 ? inputs_size : layers[ index - 1 ][ 2 ] }}.to_i }
+						@chromosome_layers << Array( {{ layer[ 0 ] }} ).new( {{ layer[ 2 ] }} ){ {{ layer[ 0 ] }}.new {{ index == 0 ? inputs_size : layers[ index - 1 ][ 2 ] }}.to_i }
 					{% end %}
 
 					@layers << {{ inputs_type }}.new( {{ inputs_size }}.to_i )
@@ -45,16 +45,16 @@ module YAGA
 					}
 
 					{% for layer, index in layers %}
-						gene = @genes[ {{ index }} ].as Array( {{ layer[ 0 ] }} )
+						chromosomes = @chromosome_layers[ {{ index }} ].as Array( {{ layer[ 0 ] }} )
 						input = @layers[ {{ index }} ].as {{ index == 0 ? inputs_type : layers[ index - 1 ][ 1 ] }}
 						activation = @layers[ {{ index + 1 }} ].as {{ layer[ 1 ] }}
 
-						gene.each_with_index{|command, command_index|
-							activated_command = command.activate input
-							if activation[ command_index ]?.nil?
-								activation << activated_command if activation.responds_to? :<<
+						chromosomes.each_with_index{|chromosome, chromosome_index|
+							activated_chromosome = chromosome.activate input
+							if activation[ chromosome_index ]?.nil?
+								activation << activated_chromosome if activation.responds_to? :<<
 							else
-								activation[ command_index ] = activated_command
+								activation[ chromosome_index ] = activated_chromosome
 							end
 						}
 					{% end %}
@@ -64,7 +64,7 @@ module YAGA
 			end
 		end
 
-		getter genes
+		getter chromosome_layers
 
 		abstract def activate( inputs : T ) : U
 
@@ -73,48 +73,48 @@ module YAGA
 		end
 
 		def generate : Void
-			@genes.each{ |gene| gene.each &.randomize }
+			@chromosome_layers.each &.each( &.randomize )
 		end
 
 		def replace( other : Genome( T, U ) ) : Void
-			source_genes = other.genes
-			@genes.each_with_index{ |gene, gene_index| gene.each_with_index{ |command, command_index| command.replace source_genes[ gene_index ][ command_index ] } }
+			source_layers = other.chromosome_layers
+			@chromosome_layers.each_with_index{ |chromosomes, chromosomes_layer_index| chromosomes.each_with_index{ |chromosome, chromosome_index| chromosome.replace source_layers[ chromosomes_layer_index ][ chromosome_index ] } }
 		end
 
 		def mutate : Void
-			rand( 1_u8 .. MUTATION_SIZE ).times{
-				gene = @genes[ rand @genes.size ]
-				gene[ rand gene.size ].tap{ |command| MUTATION_COMMANDS.times{ command.mutate } }
+			rand( 1_u8 .. MUTATION_LAYERS_COUNT ).times{
+				chromosomes = @chromosome_layers[ rand @chromosome_layers.size ]
+				chromosomes[ rand chromosomes.size ].tap{ |chromosome| MUTATION_CHROMOSOMES_COUNT.times{ chromosome.mutate } }
 			}
 		end
 
 		def crossover( other : Genome( T, U ) ) : Void
-			other_genes = other.genes
+			other_layers = other.chromosome_layers
 
-			CROSSOVER_SIZE.times{
-				crossing_gene_index = rand @genes.size
+			CROSSOVER_CHROMOSOMES_COUNT.times{
+				crossing_layer_index = rand @chromosome_layers.size
 
-				source_gene = other_genes[ crossing_gene_index ]
-				target_gene = @genes[ crossing_gene_index ]
+				source_chromosomes = other_layers[ crossing_layer_index ]
+				target_chromosomes = @chromosome_layers[ crossing_layer_index ]
 
-				gene_index = rand target_gene.size
+				chromosome_index = rand target_chromosomes.size
 
-				source_command = source_gene[ gene_index ]
-				target_command = target_gene[ gene_index ]
+				source_chromosome = source_chromosomes[ chromosome_index ]
+				target_chromosome = target_chromosomes[ chromosome_index ]
 
-				target_command.replace source_command
+				target_chromosome.replace source_chromosome
 			}
 		end
 
 		def size : UInt64
 			result = 0_u64
-			@genes.each &.each{ |command| result += command.size }
+			@chromosome_layers.each &.each{ |chromosome| result += chromosome.size }
 			result
 		end
 
 		def same?( other : Genome ) : Bool
-			other_genes = other.genes
-			@genes.each_with_index{ |gene, gene_index| gene.each_with_index{ |command, command_index| return false unless command.same?( other_genes[ gene_index ][ command_index ] ) } }
+			other_layers = other.chromosome_layers
+			@chromosome_layers.each_with_index{ |chromosomes, chromosomes_layer_index| chromosomes.each_with_index{ |chromosome, chromosome_index| return false unless chromosome.same?( other_layers[ chromosomes_layer_index ][ chromosome_index ] ) } }
 			true
 		end
 	end

@@ -12,11 +12,11 @@ require "big/big_float"
 require "../shared/progress_patch"
 
 require "../../src/yaga"
+require "../../src/yaga/chromosomes/equation"
 
-require "./genetic/equation"
 require "./data"
 
-class QuadraticEquation < Equation
+class QuadraticEquation < YAGA::Chromosomes::Equation
 	def initialize( num_inputs : Int32 )
 		super num_inputs, 15_u8, Array( UInt8 ){ 0, 1, 2, 3, 4, 5 }
 	end
@@ -26,13 +26,12 @@ class QuadraticEquation < Equation
 	end
 end
 
-#                     Generated genome class
-YAGA::Genome.compile( QuadraticGenome,
-	#                    Inputs type (almost array)        Inputs size
-	                     Array( UInt16 )                 , 1          ,
+YAGA::Genome.compile(
+	# Generated genome class  Inputs type (almost array)       Inputs size
+	QuadraticGenome         , Array( UInt16 )                , 1          ,
 
-	# Activator          Activations type (almost array)   Outputs size
-	{ QuadraticEquation, Array( Int64 )                  , 1            }
+	# Activator               Activations type (almost array)  Outputs size
+	{ QuadraticEquation     , Array( Int64 )                 , 1            }
 )
 
 population = YAGA::Population( QuadraticGenome ).new 256_u32, 12_u32
@@ -51,7 +50,7 @@ puts "\n\e[0;32mFinished!\e[0m"
 
 bot = population.selection.first
 
-p genome: bot.genome.genes[ 0 ].map( &.weights )
+p genome: bot.genome.chromosome_layers[ 0 ].map( &.genes )
 p simulations_passed: simulations_passed, generation: bot.generation, max_fitness: bot.fitness, brain_size: bot.brain_size
 
 puts

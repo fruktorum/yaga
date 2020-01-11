@@ -49,11 +49,11 @@ _EOF..._
 
 All PRs are welcome!
 
-* To add the operation, please add it to `src/operations` folder
+* To add the chromosome, please add it to `src/chromosomes` folder
 * Please make sure that features compile with `--release` and (preferably) `--static` flags on Alpine Linux (see the `Dockerfile` sample for clarification)
-* Please make sure that it is working correctly when composed with other existed operations when layered it in mixed way
+* Please make sure that it is working correctly when composed with other existed chromosomes when layered it in mixed way
 * Please add at least one spec and at least one example to clarify its use cases
-* If your operation uses secific inputs or outputs (such as YAGA::Neuron based on `BitArray`) please note about that in example documentation. It would also help users to architect interfaces more strict and less error prone.
+* please note about secific inputs or outputs for the chromosome (such as YAGA::Chromosome::BinaryNeuron based on `BitArray`) in example documentation. It would also help users to architect interfaces more strict and less error prone.
 * Please add your name to contributors list below to make a history
 
 ## Contributing

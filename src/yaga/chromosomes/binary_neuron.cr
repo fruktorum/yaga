@@ -1,4 +1,4 @@
-# Binary neuron operation.
+# Binary neuron operation
 
 # Weights: BitArray
 # Inputs: BitArray
@@ -52,70 +52,78 @@
 
 require "bit_array"
 
-class Neuron < YAGA::Command( BitArray, BitArray, Bool )
-	enum Operation : UInt8
-		Mul
-		Sum
-		Xor
-		InvMul
-		InvSum
-	end
+module YAGA
 
-	property operation
+	module Chromosomes
 
-	@operation : Operation
+		class BinaryNeuron < Chromosome( BitArray, BitArray, Bool )
+			enum Operation : UInt8
+				Mul
+				Sum
+				Xor
+				InvMul
+				InvSum
+			end
 
-	def initialize( num_inputs : Int32 )
-		@weights = T.new num_inputs
-		@operation = Operation.new rand( Operation.names.size.to_u8 )
-	end
+			property operation
 
-	def activate( inputs : U ) : V
-		result = false
+			@operation : Operation
 
-		@weights.each_with_index{|weight, index|
-			if weight
-				case @operation
-					when .mul?
-						return false unless inputs[ index ]
-						result = true
-					when .inv_mul?
-						return false if inputs[ index ]
-						result = true
-					when .sum? then return true if inputs[ index ]
-					when .inv_sum? then return true unless inputs[ index ]
-					when .xor? then result ^= inputs[ index ]
+			def initialize( num_inputs : Int32 )
+				@genes = BitArray.new num_inputs
+				@operation = Operation.new rand( Operation.names.size.to_u8 )
+			end
+
+			def activate( inputs : BitArray ) : Bool
+				result = false
+
+				@genes.each_with_index{|weight, index|
+					if weight
+						case @operation
+							when .mul?
+								return false unless inputs[ index ]
+								result = true
+							when .inv_mul?
+								return false if inputs[ index ]
+								result = true
+							when .sum? then return true if inputs[ index ]
+							when .inv_sum? then return true unless inputs[ index ]
+							when .xor? then result ^= inputs[ index ]
+						end
+					end
+				}
+
+				result
+			end
+
+			def randomize : Void
+				@operation = Operation.new rand( Operation.names.size.to_u8 )
+				@genes.each_index{ |index| @genes[ index ] = rand( 2 ) == 1 }
+			end
+
+			def mutate : Void
+				if rand( 2 ) == 0
+					@operation = Operation.new rand( Operation.names.size.to_u8 )
+				else
+					@genes.toggle rand( @genes.size )
 				end
 			end
-		}
 
-		result
-	end
+			def replace( other : Chromosome ) : Void
+				@operation = other.operation
+				super
+			end
 
-	def randomize : Void
-		@operation = Operation.new rand( Operation.names.size.to_u8 )
-		@weights.each_index{ |index| @weights[ index ] = rand( 2 ) == 1 }
-	end
+			def size : UInt64
+				# Bit length + `@operation`, another configurable parameter
+				@genes.size.to_u64 + 1_u64
+			end
 
-	def mutate : Void
-		if rand( 2 ) == 0
-			@operation = Operation.new rand( Operation.names.size.to_u8 )
-		else
-			@weights.toggle rand( @weights.size )
+			def same?( other : Chromosome ) : Bool
+				super && @operation == other.operation
+			end
 		end
+
 	end
 
-	def replace( other : YAGA::Command ) : Void
-		@operation = other.operation
-		super
-	end
-
-	def size : UInt64
-		# Bit length + `@operation`, another configurable parameter
-		@weights.size.to_u64 + 1_u64
-	end
-
-	def same?( other : YAGA::Command ) : Bool
-		super && @operation == other.operation
-	end
 end
