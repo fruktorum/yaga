@@ -1,4 +1,4 @@
-# Quadratic Equation
+# Formula recognition
 
 Try to find the formula by array of it results.
 
@@ -46,7 +46,7 @@ So we need to extend `Equation` for a bit; it also speeds up performance.
 ```crystal
 class QuadraticEquation < Equation
   # Reduce chromosome size from defaults to 15
-  # And use more specific functions parts: Neg, Sum, Mul, 1, 2, x
+  # And use only specific functions parts: Neg, Sum, Mul, Const(1), Const(2), x
   def initialize( num_inputs : Int32 )
     super num_inputs, 15_u8, Array( UInt8 ){ 0, 1, 2, 3, 4, 5 }
   end

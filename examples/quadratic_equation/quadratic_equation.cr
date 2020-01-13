@@ -38,13 +38,10 @@ population = YAGA::Population( QuadraticGenome ).new 256_u32, 12_u32
 
 # Using only 3 values for the function recognition
 inputs = Array( UInt16 ){ 7, 48, 112 }
-p inputs: inputs, outputs: inputs.map{ |input| Data.f input }
-gets
+outputs = Array( Int64 ){ 16, 2066, 11986 }
 
-data = Data.new population, inputs
-
-# Add `true` for the argument to activate the inner logging
-simulations_passed = data.train 30000
+data = Data.new population, inputs, outputs
+simulations_passed = data.train 30000, false # true for logging
 
 puts "\n\e[0;32mFinished!\e[0m"
 

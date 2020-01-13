@@ -1,9 +1,10 @@
 class Data
 	@population : YAGA::Population( QuadraticGenome )
 	@inputs : Array( UInt16 )
+	@outputs : Array( Int64 )
 	@bar : ProgressBar
 
-	def initialize( @population, @inputs )
+	def initialize( @population, @inputs, @outputs )
 		@bar = ProgressBar.new width: 50, complete: "#", incomplete: "-"
 	end
 
@@ -14,11 +15,12 @@ class Data
 		training_result = @population.train( 1, simulations_cap ){|bot|
 			mse = BigFloat.new 0
 
-			@inputs.each{|input|
-				output = Data.f input
+			@inputs.each_with_index{|input, index|
+				output = @outputs[ index ]
 
 				activation = bot.activate( [ input ] )[ 0 ]
 				mse += ( ( output - activation ).to_big_f ** 2 ) / @inputs.size
+
 				p input: input, prediction: activation, actual: output, diff: output - activation, mse: mse, genome: bot.genome.chromosome_layers.map( &.map( &.genes ) ) if log
 			}
 
