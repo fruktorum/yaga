@@ -14,20 +14,20 @@ module YAGA
 				alias LayersUnion = {% for layer in layers %} {{ layer[ 1 ] }} | {% end %} {{ inputs_type }}
 
 				@chromosome_layers : Array( Array( ChromosomesUnion ) )
-				@layers : Array( LayersUnion )
+				@activation_layers : Array( LayersUnion )
 
 				def initialize
 					@chromosome_layers = Array( Array( ChromosomesUnion ) ).new
-					@layers = Array( LayersUnion ).new
+					@activation_layers = Array( LayersUnion ).new
 
 					{% for layer, index in layers %}
 						@chromosome_layers << Array( {{ layer[ 0 ] }} ).new( {{ layer[ 2 ] }} ){ {{ layer[ 0 ] }}.new {{ index == 0 ? inputs_size : layers[ index - 1 ][ 2 ] }}.to_i }
 					{% end %}
 
-					@layers << {{ inputs_type }}.new( {{ inputs_size }}.to_i )
+					@activation_layers << {{ inputs_type }}.new( {{ inputs_size }}.to_i )
 
 					{% for layer, index in layers %}
-						@layers << {{ layer[ 1 ] }}.new( {{ layer[ 2 ] }}.to_i )
+						@activation_layers << {{ layer[ 1 ] }}.new( {{ layer[ 2 ] }}.to_i )
 					{% end %}
 
 					super
@@ -35,7 +35,7 @@ module YAGA
 
 				def activate( inputs : {{ inputs_type }} ) : {{ layers.last[ 1 ] }}
 					inputs.each_with_index{|value, input_index|
-						layer = @layers[ 0 ].as {{ inputs_type }}
+						layer = @activation_layers[ 0 ].as {{ inputs_type }}
 
 						if layer[ input_index ]?.nil?
 							layer << value if layer.responds_to? :<<
@@ -46,8 +46,8 @@ module YAGA
 
 					{% for layer, index in layers %}
 						chromosomes = @chromosome_layers[ {{ index }} ].as Array( {{ layer[ 0 ] }} )
-						input = @layers[ {{ index }} ].as {{ index == 0 ? inputs_type : layers[ index - 1 ][ 1 ] }}
-						activation = @layers[ {{ index + 1 }} ].as {{ layer[ 1 ] }}
+						input = @activation_layers[ {{ index }} ].as {{ index == 0 ? inputs_type : layers[ index - 1 ][ 1 ] }}
+						activation = @activation_layers[ {{ index + 1 }} ].as {{ layer[ 1 ] }}
 
 						chromosomes.each_with_index{|chromosome, chromosome_index|
 							activated_chromosome = chromosome.activate input
@@ -59,7 +59,7 @@ module YAGA
 						}
 					{% end %}
 
-					@layers.last.as {{ layers.last[ 1 ] }}
+					@activation_layers.last.as {{ layers.last[ 1 ] }}
 				end
 			end
 		end
