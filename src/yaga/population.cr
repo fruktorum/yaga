@@ -32,7 +32,7 @@ module YAGA
 			@extra_evolution_bots = @total_bots - ( @total_bots / @selection_bots ).to_u32 - 2 .. @total_bots - 2
 		end
 
-		def train( goal : Float64, simulations_cap : UInt64 = 10000_u64, &block : Proc( Bot( T ), Float64 ) ) : UInt64
+		def train( goal : Float64, simulations_cap : UInt64 = 10000_u64, &block : Bot( T ) -> Float64 ) : UInt64
 			@fitness_history.clear
 			training_simulation &block
 
@@ -44,7 +44,11 @@ module YAGA
 			@generation
 		end
 
-		private def training_simulation( &block : Proc( Bot( T ), Float64 ) ) : Void
+		def simulate( &block : Bot( T ) -> Void ) : Void
+			@bots.each{ |bot| yield bot }
+		end
+
+		private def training_simulation( &block : Bot( T ) -> Float64 ) : Void
 			max_fitness = Float64::MIN
 
 			@bots.each{|bot|

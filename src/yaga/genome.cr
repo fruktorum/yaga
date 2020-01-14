@@ -10,24 +10,24 @@ module YAGA
 
 		macro compile( name, inputs_type, inputs_size, *layers )
 			class {{ name }} < YAGA::Genome( {{ inputs_type }}, {{ layers.last[ 1 ] }} )
-				alias ChromosomesUnion = {% for layer, index in layers %} {{ layer[ 0 ] }} {% if index < layers.size - 1 %} | {% end %} {% end %}
+				alias ChromosomesUnion = {% for layer, index in layers %} StaticArray( {{ layer[ 0 ] }}, {{ layer[ 2 ] }} ) {% if index < layers.size - 1 %} | {% end %} {% end %}
 				alias LayersUnion = {% for layer in layers %} {{ layer[ 1 ] }} | {% end %} {{ inputs_type }}
 
-				@chromosome_layers : Array( Array( ChromosomesUnion ) )
-				@activation_layers : Array( LayersUnion )
+				@chromosome_layers : StaticArray( ChromosomesUnion, {{ layers.size }} )
+				@activation_layers : StaticArray( LayersUnion, {{ layers.size + 1 }} )
 
 				def initialize
-					@chromosome_layers = Array( Array( ChromosomesUnion ) ).new
-					@activation_layers = Array( LayersUnion ).new
+					@chromosome_layers = uninitialized( ChromosomesUnion )[ {{ layers.size }} ]
+					@activation_layers = uninitialized( LayersUnion )[ {{ layers.size + 1 }} ]
 
 					{% for layer, index in layers %}
-						@chromosome_layers << Array( {{ layer[ 0 ] }} ).new( {{ layer[ 2 ] }} ){ {{ layer[ 0 ] }}.new {{ index == 0 ? inputs_size : layers[ index - 1 ][ 2 ] }}.to_i }
+						@chromosome_layers[ {{ index }} ] = StaticArray( {{ layer[ 0 ] }}, {{ layer[ 2 ] }} ).new{ {{ layer[ 0 ] }}.new {{ index == 0 ? inputs_size : layers[ index - 1 ][ 2 ] }}.to_i }
 					{% end %}
 
-					@activation_layers << {{ inputs_type }}.new( {{ inputs_size }}.to_i )
+					@activation_layers[ 0 ] = {{ inputs_type }}.new( {{ inputs_size }}.to_i )
 
 					{% for layer, index in layers %}
-						@activation_layers << {{ layer[ 1 ] }}.new( {{ layer[ 2 ] }}.to_i )
+						@activation_layers[ {{ index + 1 }} ] = {{ layer[ 1 ] }}.new( {{ layer[ 2 ] }}.to_i )
 					{% end %}
 
 					super
@@ -45,7 +45,7 @@ module YAGA
 					}
 
 					{% for layer, index in layers %}
-						chromosomes = @chromosome_layers[ {{ index }} ].as Array( {{ layer[ 0 ] }} )
+						chromosomes = @chromosome_layers[ {{ index }} ].as StaticArray( {{ layer[ 0 ] }}, {{ layer[ 2 ] }} )
 						input = @activation_layers[ {{ index }} ].as {{ index == 0 ? inputs_type : layers[ index - 1 ][ 1 ] }}
 						activation = @activation_layers[ {{ index + 1 }} ].as {{ layer[ 1 ] }}
 
