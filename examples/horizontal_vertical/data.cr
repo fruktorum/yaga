@@ -21,7 +21,7 @@ class Data
 			bar.width = 50
 		end
 
-		training_result = population.train( 15.9, simulations ){|bot|
+		training_result = population.train( 16_f64, simulations ){|bot|
 			fitness = 0_f64
 
 			@inputs.each_with_index{|input, index|
