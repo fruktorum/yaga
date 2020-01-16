@@ -34,7 +34,7 @@ puts
 
 data.inputs.each_with_index{ |input, index| p input: input, prediction: bot.activate( input ), actual: data.outputs[ index ] }
 
-puts "Press enter"
+puts "Press enter for exploitation"
 gets
 
 ### EXPLOITATION
@@ -43,7 +43,7 @@ population.simulate{|population_bot|
 	result = Array( BitArray ).new( 16 ){ BitArray.new 2 }
 
 	data.inputs.each_with_index{|input, input_index|
-		bot.activate( input ).each_with_index{|value, index|
+		population_bot.activate( input ).each_with_index{|value, index|
 			result[ input_index ][ index ] = value
 		}
 	}

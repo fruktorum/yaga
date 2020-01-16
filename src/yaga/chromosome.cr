@@ -4,7 +4,7 @@
 
 module YAGA
 
-	abstract class Chromosome( T, U, V )
+	module Chromosome( T, U, V )
 		getter genes
 
 		@genes : T
@@ -12,6 +12,7 @@ module YAGA
 		abstract def activate( inputs : U ) : V
 		abstract def randomize : Void
 		abstract def mutate : Void
+		abstract def replace( other : Chromosome( T, U, V ) ) : Void
 
 		def initialize( num_inputs : Int32 )
 			@genes = T.new 0
@@ -19,10 +20,6 @@ module YAGA
 
 		def size : UInt64
 			@genes.size.to_u64
-		end
-
-		def replace( other : Chromosome ) : Void
-			@genes.each_index{ |index| @genes[ index ] = other.genes[ index ] }
 		end
 
 		def same?( other : Chromosome ) : Bool

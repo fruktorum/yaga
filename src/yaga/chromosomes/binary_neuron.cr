@@ -56,7 +56,9 @@ module YAGA
 
 	module Chromosomes
 
-		class BinaryNeuron < Chromosome( BitArray, BitArray, Bool )
+		class BinaryNeuron
+			include Chromosome( BitArray, BitArray, Bool )
+
 			enum Operation : UInt8
 				Mul
 				Sum
@@ -110,8 +112,9 @@ module YAGA
 			end
 
 			def replace( other : Chromosome ) : Void
-				@operation = other.operation
-				super
+				other_neuron = other.as BinaryNeuron
+				@genes.each_index{ |index| @genes[ index ] = other_neuron.genes[ index ] }
+				@operation = other_neuron.operation
 			end
 
 			def size : UInt64
@@ -120,7 +123,7 @@ module YAGA
 			end
 
 			def same?( other : Chromosome ) : Bool
-				super && @operation == other.operation
+				super && @operation == other.as( BinaryNeuron ).operation
 			end
 		end
 

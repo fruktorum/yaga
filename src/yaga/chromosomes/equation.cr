@@ -45,7 +45,9 @@ module YAGA
 
 	module Chromosomes
 
-		class Equation < Chromosome( Array( UInt8 ), Array( Float64 ), Float64 )
+		class Equation
+			include Chromosome( Array( UInt8 ), Array( Float64 ), Float64 )
+
 			GENOME_SIZE = 64_u8
 			COMMAND_RANGE = Array( UInt8 ).new( 14 ){ |index| index.to_u8 }
 
@@ -73,7 +75,8 @@ module YAGA
 			end
 
 			def replace( other : YAGA::Chromosome ) : Void
-				@genes.each_index{ |index| @genes[ index ] = other.genes[ index ] }
+				other_genes = other.genes.as T
+				@genes.each_index{ |index| @genes[ index ] = other_genes[ index ] }
 				@tree.parse @genes
 			end
 		end
