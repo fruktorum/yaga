@@ -122,7 +122,7 @@ simulations = population.train( 1, simulations_cap ){|bot|
 
 bar.print
 
-p max_mse: max_mse
+p max_mse: max_mse, simulations_passed: simulations
 ```
 
 Show info about a top bot (winner).

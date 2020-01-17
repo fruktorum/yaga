@@ -26,4 +26,7 @@ development_dependencies:
     github: Exilor/matrix
     branch: master
 
+  simple_matrix:
+    path: ../simple_matrix
+
 license: MIT
