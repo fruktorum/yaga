@@ -27,7 +27,7 @@ puts "\n\e[0;32mFinished!\e[0m"
 
 bot = population.selection.first
 
-p genome: bot.genome.chromosome_layers
+p genome: bot.genome.dna
 p simulations_passed: simulations_passed, generation: bot.generation, max_fitness: bot.fitness, brain_size: bot.brain_size
 
 puts
@@ -39,7 +39,7 @@ gets
 
 ### EXPLOITATION
 
-population.simulate{|population_bot|
+population.simulate_each{|population_bot|
 	result = Array( BitArray ).new( 16 ){ BitArray.new 2 }
 
 	data.inputs.each_with_index{|input, input_index|

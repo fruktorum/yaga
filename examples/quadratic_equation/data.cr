@@ -12,7 +12,7 @@ class Data
 		@bar.total = ( simulations_cap * @population.total_bots ).to_i
 		max_mse = BigFloat.new 0
 
-		training_result = @population.train( 1, simulations_cap ){|bot|
+		training_result = @population.train_each( 1, simulations_cap ){|bot|
 			mse = BigFloat.new 0
 
 			@inputs.each_with_index{|input, index|
@@ -21,7 +21,7 @@ class Data
 				activation = bot.activate( [ input ] )[ 0 ]
 				mse += ( ( output - activation ).to_big_f ** 2 ) / @inputs.size
 
-				p input: input, prediction: activation, actual: output, diff: output - activation, mse: mse, genome: bot.genome.chromosome_layers.map( &.map( &.genes ) ) if log
+				p input: input, prediction: activation, actual: output, diff: output - activation, mse: mse, genome: bot.genome.dna.map( &.map( &.genes ) ) if log
 			}
 
 			max_mse = mse if max_mse < mse

@@ -21,7 +21,7 @@ class Data
 			bar.width = 50
 		end
 
-		training_result = population.train( 16_f64, simulations ){|bot|
+		training_result = population.train_each( 16_f64, simulations ){|bot|
 			fitness = 0_f64
 
 			@inputs.each_with_index{|input, index|
@@ -31,7 +31,7 @@ class Data
 			}
 
 			if log
-				p activations: @activations, fitness: fitness, genes: bot.genome.chromosome_layers
+				p activations: @activations, fitness: fitness, genes: bot.genome.dna
 			else
 				bar.not_nil!.inc
 			end

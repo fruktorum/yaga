@@ -17,8 +17,8 @@ require "../../src/yaga/chromosomes/equation"
 require "./data"
 
 class QuadraticEquation < YAGA::Chromosomes::Equation
-	def initialize( num_inputs : Int32 )
-		super num_inputs, 15_u8, Array( UInt8 ){ 0, 1, 2, 3, 4, 5 }
+	def initialize( @num_inputs, @layer_index, @chromosome_index )
+		super @num_inputs, @layer_index, @chromosome_index, 15_u8, Array( UInt8 ){ 0, 1, 2, 3, 4, 5 }
 	end
 
 	def activate( inputs : Array( UInt16 ) ) : Int64
@@ -47,7 +47,7 @@ puts "\n\e[0;32mFinished!\e[0m"
 
 bot = population.selection.first
 
-p genome: bot.genome.chromosome_layers[ 0 ].map( &.genes )
+p genome: bot.genome.dna[ 0 ].map( &.genes )
 p simulations_passed: simulations_passed, generation: bot.generation, max_fitness: bot.fitness, brain_size: bot.brain_size
 
 puts

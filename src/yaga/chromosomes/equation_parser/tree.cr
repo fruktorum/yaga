@@ -14,7 +14,7 @@ module YAGA
 				parse buffer
 			end
 
-			def eval( input : Float64 ) : Float64
+			def eval( x : Float64, y : Float64 = 0, z : Float64 = 0 ) : Float64
 				@stack.each{|node|
 					node.result = case node.value
 						when :neg  then neg( node.children[ 0 ]? )
@@ -26,7 +26,9 @@ module YAGA
 						when :lg2  then log( node.children[ 0 ]?, 2 )
 						when :lg10 then log( node.children[ 0 ]?, 10 )
 						when :lge  then log( node.children[ 0 ]?, Math::E )
-						when :x    then input.to_f64
+						when :x    then x
+						when :y    then y
+						when :z    then z
 						when :pi   then Math::PI
 						when :e    then Math::E
 						when UInt8 then node.value.as( UInt8 ).to_f64

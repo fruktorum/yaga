@@ -2,7 +2,7 @@ bin
 lib
 
 core
-Dockerfile
+Dockerfile*
 docker-compose.yml*
 Thumbs.db
 

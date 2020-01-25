@@ -71,8 +71,8 @@ module YAGA
 
 			@operation : Operation
 
-			def initialize( num_inputs : Int32 )
-				@genes = BitArray.new num_inputs
+			def initialize( @num_inputs, @layer_index, @chromosome_index )
+				@genes = BitArray.new @num_inputs.to_i
 				@operation = Operation.new rand( Operation.names.size.to_u8 )
 			end
 
@@ -112,9 +112,18 @@ module YAGA
 			end
 
 			def replace( other : Chromosome ) : Void
-				other_neuron = other.as BinaryNeuron
+				other_neuron = other.as self
 				@genes.each_index{ |index| @genes[ index ] = other_neuron.genes[ index ] }
 				@operation = other_neuron.operation
+			end
+
+			def crossover( other : Chromosome ) : Void
+				other_genes = other.genes.as T
+
+				slice = rand @genes.size
+				left = rand( 2_u8 ) == 0
+
+				@genes.each_index{ |index| @genes[ index ] = index <= slice ? ( left ? @genes[ index ] : other_genes[ index ] ) : ( left ? other_genes[ index ] : @genes[ index ] ) }
 			end
 
 			def size : UInt64
@@ -123,7 +132,7 @@ module YAGA
 			end
 
 			def same?( other : Chromosome ) : Bool
-				super && @operation == other.as( BinaryNeuron ).operation
+				super && @operation == other.as( self ).operation
 			end
 		end
 

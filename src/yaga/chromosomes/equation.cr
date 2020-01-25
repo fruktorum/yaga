@@ -4,10 +4,10 @@
 # Inputs: Array( Float64 )
 # Outputs: Float64
 
-# №      0        1          2      3    4    5    6    7    8       9       10       11         12          13
-# Label  neg     sum        mul     1    2    x    pi   e   sin     cos     tan      lg2        lg10        lge
-# Arity  1        2          2      0    0    0    0    0    1       1       1        1          1           1
-# Value -{a}  {a1}+{a2}  {a1}*{a2}  1    2    X    PI   e  sin{a}  cos{a}  tan{a}  log(2){a}  log(10){a}  log(e){a}
+# №      0        1          2      3    4    5    6    7    8       9       10       11         12          13      14   15
+# Label  neg     sum        mul     1    2    x    pi   e   sin     cos     tan      lg2        lg10        lge       y    z
+# Arity  1        2          2      0    0    0    0    0    1       1       1        1          1           1        0    0
+# Value -{a}  {a1}+{a2}  {a1}*{a2}  1    2    X    PI   e  sin{a}  cos{a}  tan{a}  log(2){a}  log(10){a}  log(e){a}   Y    Z
 
 # Values declaration:
 # {a} - arguments
@@ -52,16 +52,15 @@ module YAGA
 			COMMAND_RANGE = Array( UInt8 ).new( 14 ){ |index| index.to_u8 }
 
 			@tree : EquationParser::Tree
-			@genome_size : UInt8
 			@command_range : Array( UInt8 )
 
-			def initialize( num_inputs : Int32, @genome_size = GENOME_SIZE, @command_range = COMMAND_RANGE )
-				@genes = Array( UInt8 ).new( @genome_size ){ @command_range.sample }
+			def initialize( @num_inputs, @layer_index, @chromosome_index, genome_size = GENOME_SIZE, @command_range = COMMAND_RANGE )
+				@genes = Array( UInt8 ).new( genome_size ){ @command_range.sample }
 				@tree = EquationParser::Tree.new @genes
 			end
 
 			def activate( inputs : Array( Float64 ) ) : Float64
-				@tree.eval inputs[ 0 ].to_i32
+				@tree.eval inputs[ @chromosome_index ].to_f64
 			end
 
 			def randomize : Void
@@ -70,7 +69,7 @@ module YAGA
 			end
 
 			def mutate : Void
-				@genes[ rand @genome_size ] = @command_range.sample
+				@genes[ rand @genes.size ] = @command_range.sample
 				@tree.parse @genes
 			end
 
@@ -78,6 +77,10 @@ module YAGA
 				other_genes = other.genes.as T
 				@genes.each_index{ |index| @genes[ index ] = other_genes[ index ] }
 				@tree.parse @genes
+			end
+
+			def crossover( other : Chromosome ) : Void
+				replace other
 			end
 		end
 
