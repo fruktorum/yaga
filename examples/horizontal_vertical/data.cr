@@ -31,7 +31,7 @@ class Data
 			}
 
 			if log
-				p activations: @activations, fitness: fitness, genes: bot.genome.dna
+				p activations: @activations, fitness: fitness, genes: bot.to_json
 			else
 				bar.not_nil!.inc
 			end

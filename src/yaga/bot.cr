@@ -6,11 +6,16 @@ module YAGA
 		property fitness, generation
 		getter genome
 
-		delegate mutate, activate, to: @genome
+		delegate mutate, activate, to_json, to: @genome
 
 		@genome : T
 		@generation : UInt64
 		@fitness : Float64 = 0
+
+		def initialize( pull : JSON::PullParser )
+			@generation = 0_u64
+			@genome = T.new pull
+		end
 
 		def initialize( @generation = 0_u64 )
 			@genome = T.new

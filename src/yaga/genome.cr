@@ -9,12 +9,39 @@ module YAGA
 		CROSSOVER_CHROMOSOMES_COUNT = 8_u8
 
 		macro compile( name, inputs_type, inputs_size, *layers )
-			class {{ name }} < YAGA::Genome( {{ inputs_type }}, {{ layers.last[ 1 ] }} )
+			class {{ name }} < ::YAGA::Genome( {{ inputs_type }}, {{ layers.last[ 1 ] }} )
 				alias ChromosomesUnion = {% for layer, index in layers %} StaticArray( {{ layer[ 0 ] }}, {{ layer[ 2 ] }} ) {% if index < layers.size - 1 %} | {% end %} {% end %}
 				alias LayersUnion = {% for layer in layers %} {{ layer[ 1 ] }} | {% end %} {{ inputs_type }}
 
 				@dna : StaticArray( ChromosomesUnion, {{ layers.size }} )
 				@activation_layers : StaticArray( LayersUnion, {{ layers.size + 1 }} )
+
+				def initialize( pull : JSON::PullParser )
+					@dna = uninitialized( {{ name }}::ChromosomesUnion )[ {{ layers.size }} ]
+
+					{% for layer, index in layers %}
+						@dna[ {{ index }} ] = StaticArray( {{ layer[ 0 ] }}, {{ layer[ 2 ] }} ).new{ |index| {{ layer[ 0 ] }}.new {{ index == 0 ? inputs_size : layers[ index - 1 ][ 2 ] }}_u32, {{ index }}_u32, index.to_u32 }
+					{% end %}
+
+					pull.on_key( "dna" ){
+						pull.read_begin_array
+
+						{% for layer, index in layers %}
+							pull.read_begin_array
+							@dna[ {{ index }} ] = StaticArray( {{ layer[ 0 ] }}, {{ layer[ 2 ] }} ).new{ |index| {{ layer[ 0 ] }}.new pull }
+							pull.read_end_array
+						{% end %}
+
+						pull.read_end_array
+					}
+
+					@activation_layers = uninitialized( LayersUnion )[ {{ layers.size + 1 }} ]
+
+					@activation_layers[ 0 ] = {{ inputs_type }}.new {{ inputs_size }}.to_i
+					{% for layer, index in layers %}
+						@activation_layers[ {{ index + 1 }} ] = {{ layer[ 1 ] }}.new {{ layer[ 2 ] }}.to_i
+					{% end %}
+				end
 
 				def initialize
 					@dna = uninitialized( ChromosomesUnion )[ {{ layers.size }} ]
@@ -116,6 +143,10 @@ module YAGA
 			other_dna = other.dna
 			@dna.each_with_index{ |chromosomes, chromosomes_layer_index| chromosomes.each_with_index{ |chromosome, chromosome_index| return false unless chromosome.same? other_dna[ chromosomes_layer_index ][ chromosome_index ] } }
 			true
+		end
+
+		def to_json( json : JSON::Builder ) : Void
+			json.object{ json.field( :dna ){ json.array{ @dna.each{ |layer| json.array{ layer.each{ |chromosome| chromosome.to_json json } } } } } }
 		end
 	end
 

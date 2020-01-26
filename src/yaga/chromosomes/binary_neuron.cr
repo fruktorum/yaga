@@ -71,6 +71,30 @@ module YAGA
 
 			@operation : Operation
 
+			def initialize( pull : JSON::PullParser )
+				@genes = BitArray.new 0
+				@operation = Operation::Mul
+				@num_inputs = 0
+				@layer_index = 0
+				@chromosome_index = 0
+
+				buffer = Array( Bool ).new
+
+				pull.read_object{|key|
+					case key
+						when "genes" then pull.read_array{ buffer << pull.read_bool }
+						when "operation" then @operation = Operation.new pull.read_int.to_u8
+						when "num_inputs" then @num_inputs = pull.read_int.to_u32
+						when "layer_index" then @layer_index = pull.read_int.to_u32
+						when "chromosome_index" then @chromosome_index = pull.read_int.to_u32
+						else pull.skip
+					end
+				}
+
+				@genes = BitArray.new @num_inputs.to_i
+				buffer.each_with_index{ |value, index| @genes[ index ] = value }
+			end
+
 			def initialize( @num_inputs, @layer_index, @chromosome_index )
 				@genes = BitArray.new @num_inputs.to_i
 				@operation = Operation.new rand( Operation.names.size.to_u8 )
@@ -133,6 +157,14 @@ module YAGA
 
 			def same?( other : Chromosome ) : Bool
 				super && @operation == other.as( self ).operation
+			end
+
+			def to_json( json : JSON::Builder ) : Void
+				json.object{
+					json.field( :genes ){ json.array{ @genes.each{ |gene| json.bool gene } } }
+					json.field( :operation ){ json.number @operation.value }
+					super
+				}
 			end
 		end
 

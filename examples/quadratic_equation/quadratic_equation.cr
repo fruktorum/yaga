@@ -47,7 +47,7 @@ puts "\n\e[0;32mFinished!\e[0m"
 
 bot = population.selection.first
 
-p genome: bot.genome.dna[ 0 ].map( &.genes )
+puts bot.to_json
 p simulations_passed: simulations_passed, generation: bot.generation, max_fitness: bot.fitness, brain_size: bot.brain_size
 
 puts

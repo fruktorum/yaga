@@ -29,6 +29,49 @@ module YAGA
 			@random_range : Range( T, T )
 			@results : SimpleMatrix( T )
 
+			def initialize( pull : JSON::PullParser )
+				@genes = SimpleMatrix( T ).new 0, 0
+
+				@num_inputs = 0_u32
+				@layer_index = 0_u32
+				@chromosome_index = 0_u32
+
+				results_height = 0
+				results_width = 0
+
+				range_from = 0
+				range_to = 0
+
+				pull.read_object{|key|
+					case key
+						when "genes" then @genes = SimpleMatrix( T ).new pull
+						when "num_inputs" then @num_inputs = pull.read_int.to_u32
+						when "layer_index" then @layer_index = pull.read_int.to_u32
+						when "chromosome_index" then @chromosome_index = pull.read_int.to_u32
+						when "results_dimensions"
+							pull.read_object{|dimensions|
+								case dimensions
+									when "height" then results_height = pull.read_int
+									when "width" then results_width = pull.read_int
+									else pull.skip
+								end
+							}
+						when "random_range"
+							pull.read_object{|range|
+								case range
+									when "from" then range_from = pull.read_float
+									when "to" then range_to = pull.read_float
+									else pull.skip
+								end
+							}
+						else pull.skip
+					end
+				}
+
+				@results = SimpleMatrix( T ).new results_height, results_width
+				@random_range = T.new( range_from ) .. T.new( range_to )
+			end
+
 			def initialize( @num_inputs, @layer_index, @chromosome_index, @random_range = T.new( RANDOM_RANGE.begin ) .. T.new( RANDOM_RANGE.end ) )
 				@genes = SimpleMatrix( T ).new @num_inputs, 1
 				@results = SimpleMatrix( T ).new 1, 1
@@ -86,6 +129,28 @@ module YAGA
 
 			def size : UInt64
 				@genes.width.to_u64 * @genes.height.to_u64
+			end
+
+			def to_json( json : JSON::Builder ) : Void
+				json.object{
+					json.field( :genes ){ @genes.to_json json }
+
+					json.field( :results_dimensions ){
+						json.object{
+							json.field( :height ){ json.number @results.height }
+							json.field( :width ){ json.number @results.width }
+						}
+					}
+
+					json.field( :random_range ){
+						json.object{
+							json.field( :from ){ json.number @random_range.begin }
+							json.field( :to ){ json.number @random_range.end }
+						}
+					}
+
+					super
+				}
 			end
 		end
 

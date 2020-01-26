@@ -54,6 +54,29 @@ module YAGA
 			@tree : EquationParser::Tree
 			@command_range : Array( UInt8 )
 
+			def initialize( pull : JSON::PullParser )
+				@genes = Array( UInt8 ).new
+				@tree = EquationParser::Tree.new @genes
+				@command_range = Array( UInt8 ).new
+
+				@num_inputs = 0
+				@layer_index = 0
+				@chromosome_index = 0
+
+				pull.read_object{|key|
+					case key
+						when "genes" then pull.read_array{ @genes << pull.read_int.to_u8 }
+						when "command_range" then pull.read_array{ @command_range << pull.read_int.to_u8 }
+						when "num_inputs" then @num_inputs = pull.read_int.to_u32
+						when "layer_index" then @layer_index = pull.read_int.to_u32
+						when "chromosome_index" then @chromosome_index = pull.read_int.to_u32
+						else pull.skip
+					end
+				}
+
+				@tree.parse @genes
+			end
+
 			def initialize( @num_inputs, @layer_index, @chromosome_index, genome_size = GENOME_SIZE, @command_range = COMMAND_RANGE )
 				@genes = Array( UInt8 ).new( genome_size ){ @command_range.sample }
 				@tree = EquationParser::Tree.new @genes
@@ -81,6 +104,14 @@ module YAGA
 
 			def crossover( other : Chromosome ) : Void
 				replace other
+			end
+
+			def to_json( json : JSON::Builder ) : Void
+				json.object{
+					json.field( :genes ){ json.array{ @genes.each{ |gene| json.number gene } } }
+					json.field( :command_range ){ json.array{ @command_range.each{ |value| json.number value } } }
+					super
+				}
 			end
 		end
 
