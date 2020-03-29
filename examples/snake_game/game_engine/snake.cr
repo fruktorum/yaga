@@ -62,6 +62,7 @@ module Game
 						when :down then @y += 1
 						when :left then @x -= 1 if @x > 0
 						when :right then @x += 1
+						else raise ArgumentError.new "Wrong absolute direction: '#{ @absolute_direction }'"
 					end
 				when :left
 					case @absolute_direction
@@ -77,6 +78,7 @@ module Game
 						when :right
 							@y -= 1 if @y > 0
 							@absolute_direction = :up
+						else raise ArgumentError.new "Wrong absolute direction: '#{ @absolute_direction }'"
 					end
 				when :right
 					case @absolute_direction
@@ -92,7 +94,9 @@ module Game
 						when :right
 							@y += 1 if @y > 0
 							@absolute_direction = :down
+						else raise ArgumentError.new "Wrong absolute direction: '#{ @absolute_direction }'"
 					end
+				else raise ArgumentError.new "Wrong direction: '#{ direction }'"
 			end
 		end
 

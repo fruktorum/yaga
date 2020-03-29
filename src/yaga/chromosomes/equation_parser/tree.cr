@@ -32,6 +32,7 @@ module YAGA
 						when :pi   then Math::PI
 						when :e    then Math::E
 						when UInt8 then node.value.as( UInt8 ).to_f64
+						else nil
 					end
 				}
 
