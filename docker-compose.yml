@@ -1,9 +1,12 @@
-version: '3.7'
+version: '3.8'
 
 services:
   dev:
     image: yaga
     build: .
-    volumes: [ '.:/app' ]
+    volumes:
+      - '.:/app/yaga'
+      - '../simple_matrix:/app/simple_matrix'
+      - '../tilerender:/app/tilerender'
     logging:
       driver: none

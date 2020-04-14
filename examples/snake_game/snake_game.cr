@@ -10,7 +10,6 @@ end
 def run_simulation( field : Game::Field ) : Void
 	while field.snakes.size > 0
 		field.tick
-		sleep 0.01 if field.visible
 	end
 end
 
@@ -76,7 +75,8 @@ population.before_simulation{
 }
 
 population.after_simulation{|generation|
-	p leader_steps: simulation_bots.max_by( &.fitness ).as( Game::Snake ).steps_alive, fitness: selection_fitness( simulation_bots, selection_size )
+	best = simulation_bots.max_by( &.fitness ).as Game::Snake
+	p generation: best.generation, leader_steps: best.steps_alive, fitness: selection_fitness( simulation_bots, selection_size )
 	sleep 3
 }
 

@@ -4,13 +4,18 @@ require "./snake"
 module Game
 
 	class Field
-		WALL_PENALTY = 50_u16
-		TAIL_PENALTY = 25_u16
-		BASE_PENALTY = 0_u16
+		enum Penalty : UInt16
+			Wall = 50
+			SelfTail = 25
+			OtherTail = 25
+			Exhaustion = 0
+		end
+
+		Interface = Game::Interface.new
 
 		getter snakes
 
-		delegate hide, show, visible, to: @interface
+		delegate hide, show, to: Interface
 
 		@width : UInt16
 		@height : UInt16
@@ -20,12 +25,13 @@ module Game
 		@food_amount : UInt16
 		@food : Array( Array( Bool ) )
 
-		@interface : Interface( UInt16 )
-
 		def initialize( @width, @height, @food_amount )
-			@interface = Interface( UInt16 ).new @width, @height
+			Interface.dimensions @width, @height
+
 			@snakes = Array( Snake ).new
 			@food = Array( Array( Bool ) ).new( @height ){ Array( Bool ).new @width, false }
+
+			walls
 		end
 
 		def tick : Void
@@ -33,25 +39,26 @@ module Game
 				sensors = snake_sensors snake
 				next unless clear_part = snake.move sensors
 
-				@interface.empty *clear_part
+				Interface.empty *clear_part
 				eat_food snake
 
-				death, target = check_death snake
-				manage_dead snake, target.not_nil! if death
+				target = check_death snake
+				manage_dead snake, target if target
 			}
 
 			render
+			sleep 0.02 if Interface.visible
 		end
 
 		def render : Void
 			@snakes.each{|snake|
-				@interface.entity snake.x, snake.y, 45
-				snake.tail.each{ |x, y| @interface.entity x, y }
+				Interface.entity snake.x, snake.y, :purple
+				snake.tail.each{ |x, y| Interface.entity x, y }
 			}
 
-			@food.each_with_index{ |row, y| row.each_with_index{ |value, x| @interface.food x.to_u16, y.to_u16 if value } }
+			@food.each_with_index{ |row, y| row.each_with_index{ |value, x| Interface.food x.to_u16, y.to_u16 if value } }
 
-			@interface.flush
+			Interface.flush
 		end
 
 		def generate_food : Void
@@ -68,20 +75,18 @@ module Game
 			@snakes.each &.reset
 			@food.each &.fill( false )
 			@food_amount.times{ generate_food }
-			pre_render
+			Interface.clear
 		end
 
-		private def pre_render : Void
-			@interface.clear
-
+		private def walls : Void
 			@height.times{|y|
-				@interface.wall 0, y
-				@interface.wall @width - 1, y
+				Interface.wall 0, y
+				Interface.wall @width - 1, y
 			}
 
 			@width.times{|x|
-				@interface.wall x, 0
-				@interface.wall x, @height - 1
+				Interface.wall x, 0
+				Interface.wall x, @height - 1
 			}
 		end
 
@@ -93,39 +98,33 @@ module Game
 			end
 		end
 
-		private def check_death( snake : Snake ) : Tuple( Bool, Symbol? )
-			return { true, :tail } if snake.health == 0
-			return { true, :tail } if snake.tail.any?{ |x, y| snake.x == x && snake.y == y }
-			return { true, :wall } if snake.x == 0 || snake.y == 0 || snake.x == @width - 1 || snake.y == @height - 1
+		private def check_death( snake : Snake ) : Penalty?
+			return Penalty::Exhaustion if snake.health == 0
+			return Penalty::SelfTail if snake.tail.any?{ |x, y| snake.x == x && snake.y == y }
+			return Penalty::Wall if snake.x == 0 || snake.y == 0 || snake.x == @width - 1 || snake.y == @height - 1
 
 			@snakes.each{|other_snake|
 				if other_snake != snake
-					return { true, :other_head } if other_snake.x == snake.x && other_snake.y == snake.y
-					return { true, :other_tail } if other_snake.tail.any?{ |x, y| x == snake.x && y == snake.y }
+					return Penalty::OtherTail if other_snake.x == snake.x && other_snake.y == snake.y
+					return Penalty::OtherTail if other_snake.tail.any?{ |x, y| x == snake.x && y == snake.y }
 				end
 			}
 
-			{ false, nil }
+			nil
 		end
 
-		private def manage_dead( snake : Snake, target : Symbol ) : Void
-			penalty = Snake::BASE_HEALTH + case target
-				when :wall
-					@interface.wall snake.x, snake.y
-					WALL_PENALTY
-				when :other_head then TAIL_PENALTY # Nothing to do - head is visually same
-				when :other_tail
-					@interface.entity snake.x, snake.y
-					TAIL_PENALTY
-				when :tail then TAIL_PENALTY # Optimization: tail clears later
-				else
-					@interface.empty snake.x, snake.y
-					BASE_PENALTY
+		private def manage_dead( snake : Snake, target : Penalty ) : Void
+			case target
+				when .wall? then Interface.empty snake.x, snake.y
+				when .other_tail? then Interface.entity snake.x, snake.y
+				when .exhaustion? then Interface.empty snake.x, snake.y
+				when .self_tail? # Do nothing - tail will be cleared later
 			end
 
-			snake.tail.each{ |part| @interface.empty *part }
+			snake.tail.each{ |part| Interface.empty *part }
 
-			bonus = snake.tail_size * 15 + snake.steps_alive
+			bonus = snake.tail_size * 5 + snake.steps_alive
+			penalty = Snake::BASE_HEALTH + target.value
 			snake.fitness = penalty < bonus ? ( bonus - penalty ).to_f64 : 0_f64
 
 			@snakes.delete snake
@@ -142,7 +141,7 @@ module Game
 					when :down  then { snake.y + 5 < y ? 0_u16 : snake.y + 5 - y, snake.x + 5 < x ? 0_u16 : snake.x + 5 - x }
 					when :left  then { snake.y + 5 < x ? 0_u16 : snake.y + 5 - x, snake.x + y < 5 ? 0_u16 : snake.x + y - 5 }
 					when :right then { snake.y + x < 5 ? 0_u16 : snake.y + x - 5, snake.x + 5 < y ? 0_u16 : snake.x + 5 - y }
-					else { 0_u16, 0_u16 }
+					else raise Exception.new "Should not be here"
 				end
 
 				value = case

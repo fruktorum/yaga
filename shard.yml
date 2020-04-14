@@ -1,13 +1,9 @@
 name: yaga
 version: 0.1.0
-crystal: 0.34.0-dev
+crystal: 1.0.0-dev
 
 authors:
   - SlayerShadow <gawfast@gmail.com>
-
-targets:
-  yaga:
-    main: src/yaga.cr
 
 development_dependencies:
   shainet:
@@ -28,5 +24,8 @@ development_dependencies:
 
   simple_matrix:
     path: ../simple_matrix
+
+  tilerender:
+    path: ../tilerender
 
 license: MIT
