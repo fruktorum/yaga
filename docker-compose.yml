@@ -4,9 +4,17 @@ services:
   dev:
     image: yaga
     build: .
+    networks: [ websockify ]
     volumes:
       - '.:/app/yaga'
       - '../simple_matrix:/app/simple_matrix'
       - '../tilerender:/app/tilerender'
+    environment:
+      INTERFACE_PORT: 3248
     logging:
       driver: none
+
+networks:
+  websockify:
+    name: websockify-proxy
+    external: true
