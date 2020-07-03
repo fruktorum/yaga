@@ -5,6 +5,7 @@ module YAGA
 	class Population( T )
 		TOTAL_BOTS = 64_u32
 		SELECTION_BOTS = 8_u32
+		MUTATION_PERCENT = 10_u8
 
 		SIMULATIONS_HISTORY = 200_u64
 
@@ -13,9 +14,10 @@ module YAGA
 
 		@total_bots : UInt32
 		@selection_bots : UInt32
+		@mutation_percent : UInt8
 
-		@mutation_bots : Range( UInt32, UInt32 )
-		@crossover_bots : Range( UInt32, UInt32 )
+		@mutation_bots : UInt32
+		@crossover_bots : UInt32
 		@extra_evolution_bots : Range( UInt32, UInt32 )
 
 		@bots : Array( Bot( T ) )
@@ -29,7 +31,7 @@ module YAGA
 		@before_evolution_action : Proc( UInt64, Void )?
 		@after_evolution_action : Proc( UInt64, Void )?
 
-		def initialize( @total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS, &block : Int32 -> Bot( T ) )
+		def initialize( @total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS, @mutation_percent = MUTATION_PERCENT, &block : Int32 -> Bot( T ) )
 			raise ArgumentError.new( "Total bots amount should be greater than or equal to 11, got: #{ @total_bots }" ) if @total_bots < 11
 			raise ArgumentError.new( "Selection bots amount should be greater than or equal to 2, got: #{ @selection_bots }" ) if @selection_bots < 2
 
@@ -38,12 +40,12 @@ module YAGA
 			@selection = Array( Bot( T ) ).new( @selection_bots ){ Bot( T ).new }
 			@fitness_history = Array( Float64 ).new SIMULATIONS_HISTORY
 
-			@mutation_bots = ( @total_bots / 2 ).to_u32 .. @total_bots - 3
-			@crossover_bots = ( @total_bots / 2 - @total_bots / 8 ).to_u32 - 1 .. @total_bots - 3
+			@mutation_bots = @total_bots - ( @total_bots / 2 ).to_u32 - 2
+			@crossover_bots = @total_bots - ( @total_bots / 2 - @total_bots / 8 ).to_u32 - 1
 			@extra_evolution_bots = @total_bots - ( @total_bots / @selection_bots ).to_u32 - 2 .. @total_bots - 2
 		end
 
-		def initialize( @total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS )
+		def initialize( @total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS, @mutation_percent = MUTATION_PERCENT )
 			raise ArgumentError.new( "Total bots amount should be greater than or equal to 11, got: #{ @total_bots }" ) if @total_bots < 11
 			raise ArgumentError.new( "Selection bots amount should be greater than or equal to 2, got: #{ @selection_bots }" ) if @selection_bots < 2
 
@@ -52,8 +54,8 @@ module YAGA
 			@selection = Array( Bot( T ) ).new( @selection_bots ){ Bot( T ).new }
 			@fitness_history = Array( Float64 ).new SIMULATIONS_HISTORY
 
-			@mutation_bots = ( @total_bots / 2 ).to_u32 .. @total_bots - 3
-			@crossover_bots = ( @total_bots / 2 - @total_bots / 8 ).to_u32 - 1 .. @total_bots - 3
+			@mutation_bots = @total_bots - ( @total_bots / 2 ).to_u32 - 2
+			@crossover_bots = @total_bots - ( @total_bots / 2 - @total_bots / 8 ).to_u32 - 1
 			@extra_evolution_bots = @total_bots - ( @total_bots / @selection_bots ).to_u32 - 2 .. @total_bots - 2
 		end
 
@@ -123,7 +125,6 @@ module YAGA
 				}
 			else
 				@generation += 1
-				prepare_population
 				process_evolution
 				prevent_stagnation if @generation >= SIMULATIONS_HISTORY && bad_statistics?
 			end
@@ -183,31 +184,28 @@ module YAGA
 			( current_selection + 2 .. @selection_bots - 1 ).each{ |index| @selection[ index ].replace @bots.sample }
 		end
 
-		private def prepare_population : Void
-			selection_index = 0 # Avoid mod operation: selection_index = bot_index % @selection_bots
-			@bots.each{|bot|
-				bot.replace @selection[ selection_index ]
-				bot.fitness = 0_f64
-
-				selection_index += 1
-				selection_index -= @selection_bots if selection_index >= @selection_bots
-			}
-		end
-
 		private def process_evolution : Void
-			@bots[ @mutation_bots ].each{|bot|
-				bot.mutate
+			@bots.each_with_index{|bot, index|
+				selection_index = index % @selection_bots
+
+				while selection_index < @selection_bots && ( selection_bot = @selection[ selection_index ] ).same? bot
+					selection_index += 1
+				end
+				next unless selection_bot
+
+				bot.crossover selection_bot
 				bot.generation = @generation
 			}
 
-			selection_index = 0 # Avoid mod operation: selection_index = bot_index % @selection_bots
-			@bots[ @crossover_bots ].each{|bot|
-				bot.crossover @selection[ selection_index ]
-				bot.generation = @generation
-
-				selection_index += 1
-				selection_index -= @selection_bots if selection_index >= @selection_bots
+			@bots.each{|bot|
+				if rand( 0_u8 ... 100_u8 ) < @mutation_percent
+					bot.mutate
+					bot.generation = @generation
+				end
 			}
+
+			# Prevent stagnation - add best previous selection
+			@selection.each_with_index{ |selection_bot, index| @bots[ @selection_bots + index ].replace selection_bot }
 
 			@bots[ -5 .. -3 ].each{|bot|
 				bot.genome.generate

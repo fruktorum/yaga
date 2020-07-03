@@ -45,15 +45,15 @@ simulations_passed = data.train 30000, false # true for logging
 
 puts "\n\e[0;32mFinished!\e[0m"
 
-bot = population.selection.first
+best_bot = population.selection.first
 
-puts bot.to_json
-p simulations_passed: simulations_passed, generation: bot.generation, max_fitness: bot.fitness, brain_size: bot.brain_size
+puts best_bot.to_json
+p simulations_passed: simulations_passed, generation: best_bot.generation, max_fitness: best_bot.fitness, brain_size: best_bot.brain_size
 
 puts
 
 10.times{
 	input = rand 128_u16
 	output = Data.f input
-	p input: input, prediction: bot.activate( [ input ] )[ 0 ], actual: output
+	p input: input, prediction: best_bot.activate( [ input ] )[ 0 ], actual: output
 }
