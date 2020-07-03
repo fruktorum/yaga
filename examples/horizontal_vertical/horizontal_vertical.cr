@@ -6,6 +6,7 @@ require "../../src/yaga/chromosomes/binary_neuron"
 require "./data"
 
 ### PREPARE DATA
+
 YAGA::Genome.compile(
 	# Generated genome class           Inputs type (array)       Inputs size
 	BinaryGenome                     , BitArray                , 9          ,
@@ -20,7 +21,8 @@ data = Data.new
 
 ### TRAINING
 
-simulations_passed = data.train population, 30000
+simulations_passed = data.train_each population, 30000 # Training variant 1
+# simulations_passed = data.train_world population, 30000 # Training variant 2
 puts "\n\e[0;32mFinished!\e[0m"
 
 ### ANALYTICS

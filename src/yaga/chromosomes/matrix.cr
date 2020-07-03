@@ -32,9 +32,9 @@ module YAGA
 			def initialize( pull : JSON::PullParser )
 				@genes = SimpleMatrix( T ).new 0, 0
 
-				@num_inputs = 0_u32
-				@layer_index = 0_u32
-				@chromosome_index = 0_u32
+				@num_inputs = 0
+				@layer_index = 0
+				@chromosome_index = 0
 
 				results_height = 0
 				results_width = 0

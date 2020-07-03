@@ -91,6 +91,8 @@ population = YAGA::Population( BinaryGenome ).new 256_u32, 12_u32
 
 ### 5. Train bots
 
+#### Version 1: `#train_each`
+
 ```crystal
 # It would be better to see the progress
 require "progress"
@@ -100,7 +102,7 @@ simulations_cap = 30000_u64
 
 bar = ProgressBar.new( ( simulations_cap * population.total_bots ).to_i )
 
-simulations_passed = population.train( fitness_target, simulations_cap ){|bot|
+simulations_passed = population.train_each( fitness_target, simulations_cap ){|bot|
   fitness = 0_f64 # How good the bot is
 
   inputs.each_with_index{|input, index|
@@ -125,6 +127,45 @@ p simulations_passed: simulations_passed # Amount of simulations
 * `progress` is not required feature but it helps a lot in training
    * Please make sure to add `askn/progress` into your `shards.yml`
 
+#### Version 2: `#train_world`
+
+```crystal
+# It would be better to see the progress
+require "progress"
+
+def run_simulation( bots : Array( BinaryGenome ), inputs : Array( BitArray ) ) : Void
+  bots.each{|bot|
+    fitness = 0_f64 # How good the bot is
+
+    inputs.each_with_index{|input, index|
+      activation = bot.activate input # Last genome layer calculation result
+      fitness += 1 if activation == outputs[ index ] # Calculate fitness
+    }
+
+    bot.fitness = fitness
+  }
+end
+
+fitness_target = 16_f64
+simulations_cap = 30000_u64
+
+bar = ProgressBar.new simulations_cap.to_i
+
+simulations_passed = population.train_world( fitness_target, simulations_cap ){|bots|
+  run_simulation bots, inputs
+  bar.inc
+}
+
+p simulations_passed: simulations_passed # Amount of simulations
+```
+
+#### Note
+
+* You can see the difference in [Example 1 - Horizontal-Vertical](examples/horizontal_vertical)
+* [Example 2 - Quadratic Equation](examples/quadratic_equation) is written only with `#train_each`
+* [Example 3 - Snake Game](examples/snake_game) is written only with `#train_world`
+* Instead of launching `population.train_*( ... ){ ... }` methods, a `population.evolve!` method can be called explicitly if the app does not compliant with standard training process
+
 ### 6. Take the leader
 
 ```crystal
@@ -144,14 +185,49 @@ TODO: Plan to add `#from_json` and `#to_json` for `Genome` and `Chromosome` abst
 ### 8. Exploitation
 
 ```crystal
+# Get a bot result:
+p bot.activate( inputs.sample )
+```
+
+#### Version 1: `#simulate_each`
+
+```crystal
 input = inputs.sample
 
-# To get a bot result, activate it
-p bot.activate( input )
+# Launch the population simulation per bot:
+population.simulate_each{|bot|
+  p bot.activate( input )
+}
+```
 
-# To launch the population simulation activate it
-population.simulate{|population_bot|
-  p population_bot.activate( input )
+#### Version 2: `#simulate_world`
+
+```crystal
+input = inputs.sample
+
+# Launch the population simulation for all bots:
+population.simulate_world{|bots|
+  p bots.map( &.activate( input ) )
+}
+```
+
+### 9. Features
+
+Described callbacks will be launched in the same order as mentioned:
+
+* `population.before_simulation( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every simulation ran via `#simulate_*` and `train_*` methods
+* `population.before_evolution( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every training ran via `train_` methods
+* `population.after_evolution( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every training ran via `train_` methods
+* `population.after_simulation( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every simulation ran via `#simulate_*` and `train_*` methods
+
+All methods yield population generation.<br>
+Only one callback can be assigned at the same time.
+
+Example:
+
+```crystal
+population.after_evolution{|generation|
+  p new_generation: generation, max_fitness: population.bots.max_by( &.fitness )
 }
 ```
 

@@ -9,7 +9,7 @@ module YAGA
 		SIMULATIONS_HISTORY = 200_u64
 
 		property generation
-		getter bots, selection, total_bots, fitness_history
+		getter bots, selection, total_bots, selection_bots, fitness_history
 
 		@total_bots : UInt32
 		@selection_bots : UInt32
@@ -25,6 +25,9 @@ module YAGA
 
 		@before_simulation_action : Proc( UInt64, Void )?
 		@after_simulation_action : Proc( UInt64, Void )?
+
+		@before_evolution_action : Proc( UInt64, Void )?
+		@after_evolution_action : Proc( UInt64, Void )?
 
 		def initialize( @total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS, &block : Int32 -> Bot( T ) )
 			raise ArgumentError.new( "Total bots amount should be greater than or equal to 11, got: #{ @total_bots }" ) if @total_bots < 11
@@ -62,12 +65,20 @@ module YAGA
 			@after_simulation_action = block
 		end
 
+		def before_evolution( &block : UInt64 -> Void ) : Void
+			@before_evolution_action = block
+		end
+
+		def after_evolution( &block : UInt64 -> Void ) : Void
+			@after_evolution_action = block
+		end
+
 		def train_world( goal : Float64, simulations_cap : UInt64 = 10000_u64, &block : Array( Bot( T ) ) -> Void ) : UInt64
 			@fitness_history.clear
 			training_world_simulation &block
 
 			while @selection.first.fitness < goal && @generation < simulations_cap
-				evolve
+				evolve!
 				training_world_simulation &block
 			end
 
@@ -79,7 +90,7 @@ module YAGA
 			training_each_simulation &block
 
 			while @selection.first.fitness < goal && @generation < simulations_cap
-				evolve
+				evolve!
 				training_each_simulation &block
 			end
 
@@ -96,6 +107,28 @@ module YAGA
 			( before_action = @before_simulation_action ) && before_action.call( @generation )
 			@bots.each{ |bot| yield bot }
 			( after_action = @after_simulation_action ) && after_action.call( @generation )
+		end
+
+		# Usually it is not needed to call this method explicitly
+		# But there are no restrictions about that
+		def evolve! : Void
+			( before_action = @before_evolution_action ) && before_action.call( @generation )
+
+			if @generation <= 1 && @bots.all?{ |bot| bot.fitness <= 0 }
+				@generation = 0
+				@bots.each{|bot|
+					bot.generation = @generation
+					bot.fitness = 0_f64
+					bot.genome.generate
+				}
+			else
+				@generation += 1
+				prepare_population
+				process_evolution
+				prevent_stagnation if @generation >= SIMULATIONS_HISTORY && bad_statistics?
+			end
+
+			( after_action = @after_evolution_action ) && after_action.call( @generation )
 		end
 
 		private def training_each_simulation( &block : Bot( T ) -> Float64 ) : Void
@@ -136,22 +169,6 @@ module YAGA
 			@fitness_history << max_fitness
 
 			( after_action = @after_simulation_action ) && after_action.call( @generation )
-		end
-
-		private def evolve : Void
-			if @generation <= 1 && @bots.all?{ |bot| bot.fitness <= 0 }
-				@generation = 0
-				@bots.each{|bot|
-					bot.generation = @generation
-					bot.fitness = 0_f64
-					bot.genome.generate
-				}
-			else
-				@generation += 1
-				prepare_population
-				process_evolution
-				prevent_stagnation if @generation >= SIMULATIONS_HISTORY && bad_statistics?
-			end
 		end
 
 		private def prepare_selection : Void

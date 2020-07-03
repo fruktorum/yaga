@@ -18,7 +18,7 @@ module SnakeGenetic
 
 		def initialize( @num_inputs, @layer_index, @chromosome_index )
 			@genes = SimpleMatrix( T ).new 3, 3 # Kernel
-			@results = SimpleMatrix( T ).new 7 - @layer_index * 2, 7 - @layer_index * 2 # Convolution result per layer
+			@results = SimpleMatrix( T ).new 7 - @layer_index * 2, 7 - @layer_index * 2 # Convolution results per layer
 			@random_range = -5 .. 5
 			randomize
 		end
@@ -48,17 +48,17 @@ module SnakeGenetic
 		end
 
 		def initialize( @num_inputs, @layer_index, @chromosome_index )
-			# Dot product with matrix 5x1 makes result matrix 5x1
+			# Dot product with matrix 3x1 makes result matrix 3x1
 			@genes = SimpleMatrix( T ).new 3, 1
 			@results = SimpleMatrix( T ).new 3, 1
 			@random_range = -5 .. 5
 			randomize
 		end
 
-		# Apply each multiplication to sum of 3 convolution results
 		def activate( inputs : U ) : V
 			sum_inputs = SimpleMatrix( T ).new inputs.first.height, inputs.first.width
 
+			# Apply each multiplication to sum of 5 convolution results
 			5.times{|index|
 				input_index = @chromosome_index < 2 && index < 4 ? @chromosome_index * 3 + index : index - 4
 				sum_inputs.sum inputs[ input_index ], sum_inputs

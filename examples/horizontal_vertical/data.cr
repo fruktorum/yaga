@@ -13,7 +13,7 @@ class Data
 		fill_outputs
 	end
 
-	def train( population : YAGA::Population, simulations : UInt64, log : Bool = false ) : UInt64
+	def train_each( population : YAGA::Population, simulations : UInt64, log : Bool = false ) : UInt64
 		unless log
 			bar = ProgressBar.new( ( simulations * population.total_bots ).to_i )
 			bar.incomplete = "-"
@@ -42,6 +42,39 @@ class Data
 		bar.not_nil!.print unless log
 
 		training_result
+	end
+
+	def train_world( population : YAGA::Population, simulations : UInt64, log : Bool = false ) : UInt64
+		unless log
+			bar = ProgressBar.new simulations.to_i
+			bar.incomplete = "-"
+			bar.complete = "#"
+			bar.width = 50
+		end
+
+		training_result = population.train_world( 16_f64, simulations ){|bots|
+			run_simulation bots, inputs, log
+			bar.not_nil!.inc unless log
+		}
+
+		bar.not_nil!.print unless log
+
+		training_result
+	end
+
+	private def run_simulation( bots : Array( YAGA::Bot( BinaryGenome ) ), inputs : Array( BitArray ), log : Bool ) : Void
+		bots.each{|bot|
+			fitness = 0_f64
+
+			inputs.each_with_index{|input, index|
+				activation = bot.activate input # Last genome layer calculation result
+				fitness += 1 if activation == outputs[ index ] # Calculate fitness
+			}
+
+			bot.fitness = fitness
+
+			p activations: @activations, fitness: fitness, genes: bot.to_json if log
+		}
 	end
 
 	private def fill_inputs : Void

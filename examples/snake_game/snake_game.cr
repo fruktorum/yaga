@@ -17,11 +17,6 @@ def train( fields : StaticArray, population : YAGA::Population ) : Void
 	target_fitness = 5000_f64
 	target_generation = 3000_u64
 
-	population.before_simulation{
-		population.bots.each_with_index{ |snake, index| fields[ index % fields.size ].snakes << snake.as( Game::Snake ) }
-		fields.each &.reset
-	}
-
 	population.after_simulation{ |generation| p generation: "#{ generation }/#{ target_generation }", steps: population.bots.max_by( &.fitness ).as( Game::Snake ).steps_alive, target: target_fitness, fitness: selection_fitness( population.bots, population.selection.size ) }
 
 	population.train_world( target_fitness, target_generation ){ |bots| fields.each{ |field| run_simulation field } }
@@ -53,6 +48,11 @@ population = YAGA::Population( SnakeGenetic::DNA ).new( population_size, selecti
 
 puts "Please enter the saved Genome, or press enter to start the training: "
 json_genome = gets.to_s
+
+population.before_evolution{
+	population.bots.each_with_index{ |snake, index| fields[ index % fields.size ].snakes << snake.as( Game::Snake ) }
+	fields.each &.reset
+}
 
 if json_genome.empty?
 	train fields, population
