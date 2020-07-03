@@ -37,9 +37,9 @@ module YAGA
 
 					@activation_layers = uninitialized( LayersUnion )[ {{ layers.size + 1 }} ]
 
-					@activation_layers[ 0 ] = {{ inputs_type }}.new {{ inputs_size }}.to_i
+					@activation_layers[ 0 ] = {% if inputs_type.resolve == Nil %}nil{% else %}{{ inputs_type }}.new {{ inputs_size }}.to_i{% end %}
 					{% for layer, index in layers %}
-						@activation_layers[ {{ index + 1 }} ] = {{ layer[ 1 ] }}.new {{ layer[ 2 ] }}.to_i
+						@activation_layers[ {{ index + 1 }} ] = {% if layer[ 1 ].resolve == Nil %}nil{% else %}{{ layer[ 1 ] }}.new {{ layer[ 2 ] }}.to_i{% end %}
 					{% end %}
 				end
 
@@ -51,25 +51,27 @@ module YAGA
 						@dna[ {{ index }} ] = StaticArray( {{ layer[ 0 ] }}, {{ layer[ 2 ] }} ).new{ |index| {{ layer[ 0 ] }}.new( {{ index == 0 ? inputs_size : layers[ index - 1 ][ 2 ] }}_u32, {{ index }}_u32, index.to_u32 ) }
 					{% end %}
 
-					@activation_layers[ 0 ] = {{ inputs_type }}.new( {{ inputs_size }}.to_i )
+					@activation_layers[ 0 ] = {% if inputs_type.resolve == Nil %}nil{% else %}{{ inputs_type }}.new {{ inputs_size }}.to_i{% end %}
 
 					{% for layer, index in layers %}
-						@activation_layers[ {{ index + 1 }} ] = {{ layer[ 1 ] }}.new( {{ layer[ 2 ] }}.to_i )
+						@activation_layers[ {{ index + 1 }} ] = {% if layer[ 1 ].resolve == Nil %}nil{% else %}{{ layer[ 1 ] }}.new( {{ layer[ 2 ] }}.to_i ){% end %}
 					{% end %}
 
 					super
 				end
 
 				def activate( inputs : {{ inputs_type }} ) : {{ layers.last[ 1 ] }}
-					inputs.each_with_index{|value, input_index|
-						layer = @activation_layers[ 0 ].as {{ inputs_type }}
+					{% if inputs_type.resolve != Nil %}
+						inputs.each_with_index{|value, input_index|
+							layer = @activation_layers[ 0 ].as {{ inputs_type }}
 
-						if layer[ input_index ]?.nil?
-							layer << value if layer.responds_to? :<<
-						else
-							layer[ input_index ] = value
-						end
-					}
+							if layer[ input_index ]?.nil?
+								layer << value if layer.responds_to? :<<
+							else
+								layer[ input_index ] = value
+							end
+						}
+					{% end %}
 
 					{% for layer, index in layers %}
 						chromosomes = @dna[ {{ index }} ].as StaticArray( {{ layer[ 0 ] }}, {{ layer[ 2 ] }} )
