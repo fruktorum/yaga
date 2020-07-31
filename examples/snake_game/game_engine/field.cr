@@ -123,8 +123,9 @@ module Game
 
 			snake.tail.each{ |part| Interface.empty *part }
 
-			bonus = snake.tail_size * 5 + snake.steps_alive
+			bonus = ( snake.tail_size - Snake::BASE_TAIL_SIZE ) * 5 + snake.steps_alive
 			penalty = Snake::BASE_HEALTH + target.value
+
 			snake.fitness = penalty < bonus ? ( bonus - penalty ).to_f64 : 0_f64
 
 			@snakes.delete snake
@@ -137,10 +138,10 @@ module Game
 				value = 0
 
 				offset_y, offset_x = case direction
-					when :up    then { snake.y + y < 5 ? 0_u16 : snake.y + y - 5, snake.x + x < 5 ? 0_u16 : snake.x + x - 5 }
-					when :down  then { snake.y + 5 < y ? 0_u16 : snake.y + 5 - y, snake.x + 5 < x ? 0_u16 : snake.x + 5 - x }
-					when :left  then { snake.y + 5 < x ? 0_u16 : snake.y + 5 - x, snake.x + y < 5 ? 0_u16 : snake.x + y - 5 }
-					when :right then { snake.y + x < 5 ? 0_u16 : snake.y + x - 5, snake.x + 5 < y ? 0_u16 : snake.x + 5 - y }
+					when .up?    then { snake.y + y < 5 ? 0_u16 : snake.y + y - 5, snake.x + x < 5 ? 0_u16 : snake.x + x - 5 }
+					when .down?  then { snake.y + 5 < y ? 0_u16 : snake.y + 5 - y, snake.x + 5 < x ? 0_u16 : snake.x + 5 - x }
+					when .left?  then { snake.y + 5 < x ? 0_u16 : snake.y + 5 - x, snake.x + y < 5 ? 0_u16 : snake.x + y - 5 }
+					when .right? then { snake.y + x < 5 ? 0_u16 : snake.y + x - 5, snake.x + 5 < y ? 0_u16 : snake.x + 5 - y }
 					else raise Exception.new "Should not be here"
 				end
 

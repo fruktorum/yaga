@@ -2,6 +2,20 @@ module Game
 
 	class Snake < YAGA::Bot( SnakeGenetic::DNA )
 		BASE_HEALTH = 180_u16 # It is not needed to be a 16-bit but it allows more flexible customization
+		BASE_TAIL_SIZE = 1_u8
+
+		enum AbsoluteDirection
+			Up
+			Down
+			Left
+			Right
+		end
+
+		enum RelativeDirection : UInt8
+			Forward
+			Left
+			Right
+		end
 
 		getter x, y, tail, tail_size, absolute_direction, health, steps_alive
 
@@ -14,7 +28,7 @@ module Game
 		@tail : Array( Tuple( UInt16, UInt16 ) )
 		@tail_size : UInt16
 
-		@absolute_direction : Symbol
+		@absolute_direction : AbsoluteDirection
 
 		@health : UInt16
 		@steps_alive : UInt32
@@ -39,7 +53,7 @@ module Game
 			@tail << { @x, @y }
 
 			activations = activate [ sensors ]
-			current_direction = %i[ forward left right ].zip( activations ).max_by{ |direction, activation| activation }[ 0 ]
+			current_direction = RelativeDirection.values.zip( activations ).max_by{ |direction, activation| activation }[ 0 ]
 
 			step current_direction
 			@health -= 1
@@ -54,49 +68,45 @@ module Game
 			@tail_size += 1
 		end
 
-		def step( direction : Symbol ) : Void
+		def step( direction : RelativeDirection ) : Void
 			case direction
-				when :forward
+				when .forward?
 					case @absolute_direction
-						when :up then @y -= 1 if @y > 0
-						when :down then @y += 1
-						when :left then @x -= 1 if @x > 0
-						when :right then @x += 1
-						else raise ArgumentError.new "Wrong absolute direction: '#{ @absolute_direction }'"
+						when .up? then @y -= 1 if @y > 0
+						when .down? then @y += 1
+						when .left? then @x -= 1 if @x > 0
+						when .right? then @x += 1
 					end
-				when :left
+				when .left?
 					case @absolute_direction
-						when :up
+						when .up?
 							@x -= 1 if @x > 0
 							@absolute_direction = :left
-						when :down
+						when .down?
 							@x += 1
 							@absolute_direction = :right
-						when :left
+						when .left?
 							@y += 1
 							@absolute_direction = :down
-						when :right
+						when .right?
 							@y -= 1 if @y > 0
 							@absolute_direction = :up
-						else raise ArgumentError.new "Wrong absolute direction: '#{ @absolute_direction }'"
 					end
-				when :right
+				when .right?
 					case @absolute_direction
-						when :up
+						when .up?
 							@x += 1 if @x > 0
 							@absolute_direction = :right
-						when :down
+						when .down?
 							@x -= 1
 							@absolute_direction = :left
-						when :left
+						when .left?
 							@y -= 1
 							@absolute_direction = :up
-						when :right
+						when .right?
 							@y += 1 if @y > 0
 							@absolute_direction = :down
-						else raise ArgumentError.new "Wrong absolute direction: '#{ @absolute_direction }'"
 					end
-				else raise ArgumentError.new "Wrong direction: '#{ direction }'"
 			end
 		end
 
@@ -106,7 +116,7 @@ module Game
 
 			@tail.clear
 
-			@tail << { @x, @y + 1 }
+			BASE_TAIL_SIZE.times{ @tail << { @x, @y + 1 } }
 			@tail_size = @tail.size.to_u16
 
 			@health = BASE_HEALTH
