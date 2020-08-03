@@ -84,6 +84,9 @@ module YAGA
 				training_world_simulation &block
 			end
 
+			best = @bots.max_by &.fitness
+			prepare_selection best
+
 			@generation
 		end
 
@@ -95,6 +98,9 @@ module YAGA
 				evolve!
 				training_each_simulation &block
 			end
+
+			best = @bots.max_by &.fitness
+			prepare_selection best
 
 			@generation
 		end
