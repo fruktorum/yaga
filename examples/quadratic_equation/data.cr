@@ -1,5 +1,5 @@
 class Data
-	@population : YAGA::Population( QuadraticGenome )
+	@population : YAGA::Population( QuadraticGenome, Float64 )
 	@inputs : Array( UInt16 )
 	@outputs : Array( Int64 )
 	@bar : ProgressBar

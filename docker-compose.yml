@@ -3,12 +3,25 @@ version: '3.8'
 services:
   dev:
     image: yaga
-    build: .
+    build:
+      context: .
+      target: build
     networks: [ websockify ]
     volumes:
       - '.:/app/yaga'
       - '../simple_matrix:/app/simple_matrix'
       - '../tilerender:/app/tilerender'
+    environment:
+      INTERFACE_PORT: 3248
+    logging:
+      driver: none
+
+  examples:
+    image: yaga:examples
+    build:
+      context: .
+      target: examples
+    networks: [ websockify ]
     environment:
       INTERFACE_PORT: 3248
     logging:

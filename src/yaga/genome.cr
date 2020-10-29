@@ -3,7 +3,7 @@ require "./chromosome"
 module YAGA
 
 	abstract class Genome( T, U )
-		MUTATION_LAYERS_COUNT = 2_u8
+		MUTATION_LAYERS_RANGE = 1_u8 .. 2_u8
 		MUTATION_CHROMOSOMES_COUNT = 4_u8
 
 		CROSSOVER_CHROMOSOMES_COUNT = 8_u8
@@ -111,7 +111,7 @@ module YAGA
 		end
 
 		def mutate : Void
-			rand( 1_u8 .. MUTATION_LAYERS_COUNT ).times{
+			rand( MUTATION_LAYERS_RANGE ).times{
 				chromosomes = @dna[ rand @dna.size ]
 				chromosomes[ rand chromosomes.size ].tap{ |chromosome| MUTATION_CHROMOSOMES_COUNT.times{ chromosome.mutate } }
 			}

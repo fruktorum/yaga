@@ -126,7 +126,7 @@ module Game
 			bonus = ( snake.tail_size - Snake::BASE_TAIL_SIZE ) * 5 + snake.steps_alive
 			penalty = Snake::BASE_HEALTH + target.value
 
-			snake.fitness = penalty < bonus ? ( bonus - penalty ).to_f64 : 0_f64
+			snake.fitness = penalty < bonus ? ( bonus - penalty ).to_u32 : 0_u32
 
 			@snakes.delete snake
 		end

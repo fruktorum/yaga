@@ -1,6 +1,6 @@
 module Game
 
-	class Snake < YAGA::Bot( SnakeGenetic::DNA )
+	class Snake < YAGA::Bot( SnakeGenetic::DNA, UInt32 )
 		BASE_HEALTH = 180_u16 # It is not needed to be a 16-bit but it allows more flexible customization
 		BASE_TAIL_SIZE = 1_u8
 

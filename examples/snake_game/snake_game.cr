@@ -14,7 +14,7 @@ def run_simulation( field : Game::Field ) : Void
 end
 
 def train( fields : StaticArray, population : YAGA::Population ) : Void
-	target_fitness = 5000_f64
+	target_fitness = 5000_u32
 	target_generation = 3000_u64
 
 	population.before_simulation{
@@ -42,7 +42,7 @@ selection_size = 12_u32
 
 fields = StaticArray( Game::Field, 8 ).new{ Game::Field.new( *playground_params ).tap &.hide }
 
-population = YAGA::Population( SnakeGenetic::DNA ).new( population_size, selection_size ){|index|
+population = YAGA::Population( SnakeGenetic::DNA, UInt32 ).new( population_size, selection_size, 75_u8 ){|index|
 	field_index = index % playground_bots_count
 
 	x = ( field_index * 16 - (field_index / 8).to_u32 * 128 + 11 ).to_u16 # 11, 27, 43, 59, 75, 91, 107, 123, 11, 27, 43, 59, 75, 91, 107, 123, 11, 27, 43, 59, 75, 91, 107, 123, 11, 27, 43, 59, 75, 91, 107, 123
@@ -57,7 +57,7 @@ json_genome = gets.to_s
 if json_genome.empty?
 	train fields, population
 else
-	loaded_snake = YAGA::Bot( SnakeGenetic::DNA ).from_json json_genome
+	loaded_snake = YAGA::Bot( SnakeGenetic::DNA, UInt32 ).from_json json_genome
 	population.bots.each &.replace( loaded_snake )
 end
 

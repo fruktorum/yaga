@@ -16,7 +16,7 @@ YAGA::Genome.compile(
 	{ YAGA::Chromosomes::BinaryNeuron, BitArray                , 2            }
 )
 
-population = YAGA::Population( BinaryGenome ).new 256_u32, 12_u32
+population = YAGA::Population( BinaryGenome, UInt8 ).new 256_u32, 12_u32, 100_u8
 data = Data.new
 
 ### TRAINING

@@ -34,7 +34,7 @@ YAGA::Genome.compile(
 	{ QuadraticEquation     , Array( Int64 )          , 1            }
 )
 
-population = YAGA::Population( QuadraticGenome ).new 256_u32, 12_u32
+population = YAGA::Population( QuadraticGenome, Float64 ).new 256_u32, 12_u32, 100_u8
 
 # Using only 3 values for the function recognition
 inputs = Array( UInt16 ){ 7, 48, 112 }

@@ -1,7 +1,15 @@
 FROM <find_an_Alpine_Crystal_or_build_it> AS build
+WORKDIR /app/yaga
 CMD [ "sh" ]
 
 COPY shard.* ./
-RUN shards install
+
+RUN mkdir -p /build && shards install --ignore-crystal-version
 
 COPY . .
+
+FROM build AS examples
+
+RUN crystal build --no-debug --release --static --stats -o /build/horizontal_vertical examples/horizontal_vertical/horizontal_vertical.cr && \
+    crystal build --no-debug --release --static --stats -o /build/quadratic_equation examples/quadratic_equation/quadratic_equation.cr && \
+    crystal build --no-debug --release --static --stats -o /build/snake_game examples/snake_game/snake_game.cr

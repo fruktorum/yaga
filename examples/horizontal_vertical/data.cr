@@ -22,7 +22,7 @@ class Data
 		end
 
 		training_result = population.train_each( 16, simulations ){|bot|
-			fitness = 0_f64
+			fitness = 0_u8
 
 			@inputs.each_with_index{|input, index|
 				activation = bot.activate input

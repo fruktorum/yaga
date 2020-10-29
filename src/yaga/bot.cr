@@ -2,7 +2,7 @@ require "./genome"
 
 module YAGA
 
-	class Bot( T )
+	class Bot( T, V )
 		property fitness, generation
 		getter genome
 
@@ -10,24 +10,26 @@ module YAGA
 
 		@genome : T
 		@generation : UInt64
-		@fitness : Float64 = 0
+		@fitness : V
 
 		def initialize( pull : JSON::PullParser )
 			@generation = 0_u64
 			@genome = T.new pull
+			@fitness = V.new 0
 		end
 
 		def initialize( @generation = 0_u64 )
 			@genome = T.new
+			@fitness = V.new 0
 		end
 
-		def replace( other : Bot( T ) ) : Void
+		def replace( other : Bot( T, V ) ) : Void
 			@generation = other.generation
 			@fitness = other.fitness
 			@genome.replace other.genome
 		end
 
-		def crossover( other : Bot( T ) ) : Void
+		def crossover( other : Bot( T, V ) ) : Void
 			@genome.crossover other.genome
 		end
 
@@ -35,11 +37,11 @@ module YAGA
 			@genome.size
 		end
 
-		def same?( other : Bot( T ) ) : Bool
+		def same?( other : Bot( T, V ) ) : Bool
 			@genome.same? other.genome
 		end
 
-		def ==( other : Bot( T ) ) : Bool
+		def ==( other : Bot( T, V ) ) : Bool
 			object_id == other.object_id
 		end
 	end
