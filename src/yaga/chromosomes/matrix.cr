@@ -105,11 +105,11 @@ module YAGA
 			end
 
 			def randomize : Void
-				@genes.apply( @genes ){ rand @random_range }
+				@genes.apply( @genes ){ @random.rand @random_range }
 			end
 
 			def mutate : Void
-				@genes.buffer[ rand @genes.height ][ rand @genes.width ] = rand @random_range
+				@genes.buffer[ @random.rand @genes.height ][ @random.rand @genes.width ] = @random.rand @random_range
 			end
 
 			def replace( other : Chromosome ) : Void
@@ -121,8 +121,8 @@ module YAGA
 				other_buffer = other.genes.as( SimpleMatrix( T ) ).buffer
 				target_buffer = @genes.buffer
 
-				rand( @genes.height * @genes.width * 0.5 ).to_i.times{
-					y, x = rand( @genes.height ), rand( @genes.width )
+				@random.rand( @genes.height * @genes.width * 0.5 ).to_i.times{
+					y, x = @random.rand( @genes.height ), @random.rand( @genes.width )
 					target_buffer[ y ][ x ] = other_buffer[ y ][ x ]
 				}
 			end

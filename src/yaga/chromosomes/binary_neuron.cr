@@ -97,7 +97,7 @@ module YAGA
 
 			def initialize( @num_inputs, @layer_index, @chromosome_index )
 				@genes = BitArray.new @num_inputs.to_i
-				@operation = Operation.new rand( Operation.names.size.to_u8 )
+				@operation = Operation.new @random.rand( Operation.names.size.to_u8 )
 			end
 
 			def activate( inputs : BitArray ) : Bool
@@ -123,15 +123,15 @@ module YAGA
 			end
 
 			def randomize : Void
-				@operation = Operation.new rand( Operation.names.size.to_u8 )
-				@genes.each_index{ |index| @genes[ index ] = rand( 2 ) == 1 }
+				@operation = Operation.new @random.rand( Operation.names.size.to_u8 )
+				@genes.each_index{ |index| @genes[ index ] = @random.rand( 2 ) == 1 }
 			end
 
 			def mutate : Void
-				if rand( 2 ) == 0
-					@operation = Operation.new rand( Operation.names.size.to_u8 )
+				if @random.rand( 2 ) == 0
+					@operation = Operation.new @random.rand( Operation.names.size.to_u8 )
 				else
-					@genes.toggle rand( @genes.size )
+					@genes.toggle @random.rand( @genes.size )
 				end
 			end
 
@@ -144,8 +144,8 @@ module YAGA
 			def crossover( other : Chromosome ) : Void
 				other_genes = other.genes.as T
 
-				slice = rand @genes.size
-				left = rand( 2_u8 ) == 0
+				slice = @random.rand @genes.size
+				left = @random.rand( 2_u8 ) == 0
 
 				@genes.each_index{ |index| @genes[ index ] = index <= slice ? ( left ? @genes[ index ] : other_genes[ index ] ) : ( left ? other_genes[ index ] : @genes[ index ] ) }
 			end

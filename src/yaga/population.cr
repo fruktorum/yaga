@@ -13,6 +13,8 @@ module YAGA
 		property generation
 		getter bots, selection, total_bots, selection_bots, fitness_history
 
+		@random : Random
+
 		@total_bots : UInt32
 		@selection_bots : UInt32
 		@mutation_percent : UInt8
@@ -35,12 +37,12 @@ module YAGA
 		@before_training_action : Proc( UInt64, V, UInt64, Void )?
 		@after_training_action : Proc( UInt64, V, UInt64, Void )?
 
-		def initialize( @total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS, @mutation_percent = MUTATION_PERCENT, &block : Int32 -> Bot( T, V ) )
+		def initialize( @total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS, @mutation_percent = MUTATION_PERCENT, @random = Random::DEFAULT, &block : Int32 -> Bot( T, V ) )
 			raise ArgumentError.new( "Total bots amount should be greater than or equal to 8, got: #{ @total_bots }" ) if @total_bots < 8
 			raise ArgumentError.new( "Selection bots amount should be at most half of total bots, got: #{ @selection_bots }" ) if @selection_bots * 2 > @total_bots
 
-			@bots = Array( Bot( T, V ) ).new( @total_bots ){ |bot_index| yield bot_index }
-			@selection = Array( Bot( T, V ) ).new( @selection_bots ){ Bot( T, V ).new }
+			@bots = Array( Bot( T, V ) ).new( @total_bots ){ |bot_index| yield( bot_index ).tap &.update_random( @random ) }
+			@selection = Array( Bot( T, V ) ).new( @selection_bots ){ Bot( T, V ).new.tap &.update_random( @random ) }
 
 			@fitness_history = Array( V ).new SIMULATIONS_HISTORY
 
@@ -49,12 +51,12 @@ module YAGA
 			@extra_evolution_bots = [ ( @total_bots / 2 ).to_u32, @selection_bots * 2 ].min + 1 .. @total_bots - 2
 		end
 
-		def initialize( @total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS, @mutation_percent = MUTATION_PERCENT )
+		def initialize( @total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS, @mutation_percent = MUTATION_PERCENT, @random = Random::DEFAULT )
 			raise ArgumentError.new( "Total bots amount should be greater than or equal to 8, got: #{ @total_bots }" ) if @total_bots < 8
 			raise ArgumentError.new( "Selection bots amount should be at most half of total bots, got: #{ @selection_bots }" ) if @selection_bots * 2 > @total_bots
 
-			@bots = Array( Bot( T, V ) ).new( @total_bots ){ Bot( T, V ).new }
-			@selection = Array( Bot( T, V ) ).new( @selection_bots ){ Bot( T, V ).new }
+			@bots = Array( Bot( T, V ) ).new( @total_bots ){ Bot( T, V ).new.tap &.update_random( @random ) }
+			@selection = Array( Bot( T, V ) ).new( @selection_bots ){ Bot( T, V ).new.tap &.update_random( @random ) }
 
 			@fitness_history = Array( V ).new SIMULATIONS_HISTORY
 
@@ -222,7 +224,7 @@ module YAGA
 				break if current_selection >= @selection_bots - 1
 			}
 
-			( current_selection + 1 .. @selection_bots - 1 ).each{ |index| @selection[ index ].replace @bots.sample }
+			( current_selection + 1 .. @selection_bots - 1 ).each{ |index| @selection[ index ].replace @bots.sample( @random ) }
 
 			generations = Hash( UInt64, UInt16 ).new{ 0_u16 }
 			@selection.each{|bot|
@@ -257,7 +259,7 @@ module YAGA
 
 			# 3. Mutate specific amount of bots out of selection
 			@bots[ @selection_bots, @mutation_bots ].each{|bot|
-				next if rand( PERCENT_RANGE ) >= @mutation_percent
+				next if @random.rand( PERCENT_RANGE ) >= @mutation_percent
 				bot.mutate
 				bot.generation = @generation
 			}

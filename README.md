@@ -82,14 +82,24 @@ Fill the inputs and outputs somehow (for example it can be the [horizontal and v
 ### 4. Create population based on compiled genome
 
 ```crystal
-population = YAGA::Population( BinaryGenome ).new 256_u32, 12_u32
+random = Random.new
+population = YAGA::Population( BinaryGenome, UInt32 ).new 256_u32, 12_u32, random
 ```
 
-* `BinaryGenome` - the compiled genome class name
+Generic parameters:
+
+* `BinaryGenome` - the compiled genome class name (required)
+* `UInt32` - the type of the fitness value (any `Number` type) (required) _Please see different examples why it is here_
+
+Initialization parameters:
+
 * `256_u32` - total population amount (optional)
 * `12_u32` - selection amount that will be chosen as best (optional) (see [Genetic Algorithm](https://wiki2.org/en/Genetic_algorithm+Newton#Selection) articles to understand what is selection)
+* `random` - if the trainig population needs to be deterministic (see [Example 3 - Snake Game](examples/snake_game)) (optional, default - internal random based on the system seed)
 
 ### 5. Train bots
+
+Samples in this section based on [Example 1 - Horizontal-Vertical](examples/horizontal_vertical) and its BitArray `inputs` vector.
 
 #### Version 1: `#train_each`
 
@@ -97,13 +107,13 @@ population = YAGA::Population( BinaryGenome ).new 256_u32, 12_u32
 # It would be better to see the progress
 require "progress"
 
-fitness_target = 16_f64
-simulations_cap = 30000_u64
+goal = 16 # Please make sure the type is matched to population fitness type
+generation_cap = 30000_u64
 
-bar = ProgressBar.new( ( simulations_cap * population.total_bots ).to_i )
+bar = ProgressBar.new( ( generation_cap * population.total_bots ).to_i )
 
-simulations_passed = population.train_each( fitness_target, simulations_cap ){|bot|
-  fitness = 0_f64 # How good the bot is
+simulations_passed = population.train_each( goal, generation_cap ){|bot, generation|
+  fitness = 0 # How good the bot is
 
   inputs.each_with_index{|input, index|
     activation = bot.activate input # Last genome layer calculation result
@@ -122,8 +132,8 @@ p simulations_passed: simulations_passed # Amount of simulations
 * The block's argument is a [`YAGA::Bot( T )`](src/yaga/bot.cr) with the same type as genome input (`BinaryGenome` in this example)
 * Output of the block call should be Float64 fitness value: more fitness value -> more suitable bot
 * Output of the training process (`simulations_passed`) is the total simulations that bots passed
-* `fitness_target` (required) - training stops when any bot achieves the target
-* `simulations_cap` (optional, 10 000 by default) - total simulations cap, - training stops when target is not achieved for the number of simulations
+* `goal` (required) - training stops when any bot reaches the goal
+* `generation_cap` (optional, 10 000 by default) - total simulations amount which should be passed before stop, prevents infinity loop when bots cannot reach the goal
 * `progress` is not required feature but it helps a lot in training
    * Please make sure to add `askn/progress` into your `shards.yml`
 
@@ -135,7 +145,7 @@ require "progress"
 
 def run_simulation( bots : Array( BinaryGenome ), inputs : Array( BitArray ) ) : Void
   bots.each{|bot|
-    fitness = 0_f64 # How good the bot is
+    fitness = 0 # How good the bot is
 
     inputs.each_with_index{|input, index|
       activation = bot.activate input # Last genome layer calculation result
@@ -146,12 +156,12 @@ def run_simulation( bots : Array( BinaryGenome ), inputs : Array( BitArray ) ) :
   }
 end
 
-fitness_target = 16_f64
-simulations_cap = 30000_u64
+goal = 16 # Please make sure the type is matched to population fitness type
+generation_cap = 30000_u64
 
-bar = ProgressBar.new simulations_cap.to_i
+bar = ProgressBar.new generation_cap.to_i
 
-simulations_passed = population.train_world( fitness_target, simulations_cap ){|bots|
+simulations_passed = population.train_world( goal, generation_cap ){|bots, generation|
   run_simulation bots, inputs
   bar.inc
 }
@@ -178,9 +188,25 @@ p genome: genes,
   brain_size:  bot.brain_size  # Number of genes
 ```
 
-### 7. Save the state
+### 7. Save/Load the state
 
-TODO: Plan to add `#from_json` and `#to_json` for `Genome` and `Chromosome` abstract classes.
+```crystal
+# To save genome - just say the bot to show json
+best = population.bots.max_by &.fitness
+genome = best.to_json
+p genome
+
+# To restore genome - just say the bot to read json
+bot = YAGA::Bot( SnakeGenetic::DNA, UInt32 ).from_json genome
+
+# To restore the same genome for all population - apply the loaded bot's genome to this
+population.bots.each &.replace( bot )
+```
+
+There is no option to load genome into population itself. Please see [Example 3 - Snake Game](examples/snake_game) about that.<br>
+In short - `from_json` works completely correctly and stable only for `YAGA::Bot` class itself, it is not responsible for programmer-defined classes (like a `Game::Snake` class in described example).
+
+`to_json` have less problems with that - until it is redefined in custom classes. And can be used on subclasses of `YAGA::Bot` directly.
 
 ### 8. Exploitation
 
@@ -211,23 +237,52 @@ population.simulate_world{|bots|
 }
 ```
 
-### 9. Features
+### 9. Population Callbacks
 
-Described callbacks will be launched in the same order as mentioned:
+Each callback can be defined at any time and assigns to `population` object.
 
-* `population.before_simulation( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every simulation ran via `#simulate_*` and `train_*` methods
-* `population.before_evolution( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every training ran via `train_` methods
-* `population.after_evolution( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every training ran via `train_` methods
-* `population.after_simulation( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every simulation ran via `#simulate_*` and `train_*` methods
+Callbacks will be launched in the same order as mentioned.
 
-All methods yield population generation.<br>
-Only one callback can be assigned at the same time.
+* `before_training( &block : UInt64, V, UInt64 -> Void ) : Void` - assigns callback which launches before starting the training ran via `train_*` methods
+* `before_simulation( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every simulation ran via `#simulate_*` and `train_*` methods
+* `before_evolution( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every training ran via `train_` methods
+* `after_evolution( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every training ran via `train_` methods
+* `after_simulation( &block : UInt64 -> Void ) : Void` - assigns callback which launches before every simulation ran via `#simulate_*` and `train_*` methods
+* `after_training( &block : UInt64, V, UInt64 -> Void ) : Void` - assigns callback which launches before every simulation ran via `#simulate_*` and `train_*` methods
+
+All methods yield population generation on the first argument.<br>
+Only one callback of the same type can be assigned at the same time (it is not possible to define double `before_simulation` callbacks and etc.).
+
+`before_training` and `after_training` arguments:
+
+* current population generation
+* fitness goal of training (type V - user-defined on population initialization)
+* generations amount that should be trained (or has been trained - if it is `after_training` callback)
 
 Example:
 
 ```crystal
+bar = ProgressBar.new 0
+
+# Define before_training callback and reset progress bar size
+population.before_training{|generation, goal, training_generations|
+  # Show some statistics before training
+  p previons_generation: generation, goal_to_train: goal, training_generations: training_generations
+
+  bar.total = training_generations.to_i32
+  bar.set 0
+}
+
+# Show evolutions statistics (warning: it is calling per each simulation on evolution process)
 population.after_evolution{|generation|
-  p new_generation: generation, max_fitness: population.bots.max_by( &.fitness )
+  # It is possible to see some statistics
+  # p new_generation: generation, max_fitness: population.selection.max_by( &.fitness )
+  # but using progress bar can be more viable
+  bar.inc
+}
+
+population.train_world( goal: 1.2, generation_cap: 10000 ){|bots, generation|
+  # ...training logic...
 }
 ```
 

@@ -14,8 +14,11 @@ module Game
 		Interface = Game::Interface.new
 
 		getter snakes
+		setter random
 
 		delegate hide, show, to: Interface
+
+		@random : Random
 
 		@width : UInt16
 		@height : UInt16
@@ -25,7 +28,7 @@ module Game
 		@food_amount : UInt16
 		@food : Array( Array( Bool ) )
 
-		def initialize( @width, @height, @food_amount )
+		def initialize( @width, @height, @food_amount, @random )
 			Interface.dimensions @width, @height
 
 			@snakes = Array( Snake ).new
@@ -62,10 +65,10 @@ module Game
 		end
 
 		def generate_food : Void
-			x, y = rand( 1_u16 .. @width - 2 ), rand( 1_u16 .. @height - 2 )
+			x, y = @random.rand( 1_u16 .. @width - 2 ), @random.rand( 1_u16 .. @height - 2 )
 
 			while check_snake( x, y ) || @food[ y ][ x ]
-				x, y = rand( 1_u16 .. @width - 2 ), rand( 1_u16 .. @height - 2 )
+				x, y = @random.rand( 1_u16 .. @width - 2 ), @random.rand( 1_u16 .. @height - 2 )
 			end
 
 			@food[ y ][ x ] = true

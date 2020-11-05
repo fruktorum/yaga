@@ -6,7 +6,7 @@ module YAGA
 		property fitness, generation
 		getter genome
 
-		delegate mutate, activate, to_json, to: @genome
+		delegate update_random, mutate, activate, to_json, to: @genome
 
 		@genome : T
 		@generation : UInt64

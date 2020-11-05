@@ -78,7 +78,7 @@ module YAGA
 			end
 
 			def initialize( @num_inputs, @layer_index, @chromosome_index, genome_size = GENOME_SIZE, @command_range = COMMAND_RANGE )
-				@genes = Array( UInt8 ).new( genome_size ){ @command_range.sample }
+				@genes = Array( UInt8 ).new( genome_size ){ @command_range.sample @random }
 				@tree = EquationParser::Tree.new @genes
 			end
 
@@ -87,12 +87,12 @@ module YAGA
 			end
 
 			def randomize : Void
-				@genes.each_index{ |index| @genes[ index ] = @command_range.sample }
+				@genes.each_index{ |index| @genes[ index ] = @command_range.sample @random }
 				@tree.parse @genes
 			end
 
 			def mutate : Void
-				@genes[ rand @genes.size ] = @command_range.sample
+				@genes[ @random.rand @genes.size ] = @command_range.sample @random
 				@tree.parse @genes
 			end
 

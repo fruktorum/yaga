@@ -7,6 +7,8 @@ module YAGA
 	module Chromosome( T, U, V )
 		getter genes, num_inputs, layer_index, chromosome_index
 
+		@random : Random = Random.new
+
 		@genes : T
 		@num_inputs : UInt32
 		@layer_index : UInt32
@@ -26,6 +28,10 @@ module YAGA
 		end
 
 		def initialize( @num_inputs, @layer_index, @chromosome_index )
+		end
+
+		def update_random( @random ) : Void
+			randomize
 		end
 
 		def size : UInt64

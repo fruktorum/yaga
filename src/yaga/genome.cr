@@ -95,10 +95,16 @@ module YAGA
 
 		getter dna
 
+		@random : Random = Random.new
+
 		abstract def activate( inputs : T ) : U
 
 		def initialize
 			generate
+		end
+
+		def update_random( @random : Random ) : Void
+			@dna.each &.each( &.update_random @random )
 		end
 
 		def generate : Void
@@ -111,9 +117,10 @@ module YAGA
 		end
 
 		def mutate : Void
-			rand( MUTATION_LAYERS_RANGE ).times{
-				chromosomes = @dna[ rand @dna.size ]
-				chromosomes[ rand chromosomes.size ].tap{ |chromosome| MUTATION_CHROMOSOMES_COUNT.times{ chromosome.mutate } }
+			@random.rand( MUTATION_LAYERS_RANGE ).times{
+				chromosomes = @dna.sample @random
+				chromosome = chromosomes.sample @random
+				MUTATION_CHROMOSOMES_COUNT.times{ chromosome.mutate }
 			}
 		end
 
@@ -121,12 +128,12 @@ module YAGA
 			other_dna = other.dna
 
 			CROSSOVER_CHROMOSOMES_COUNT.times{
-				crossing_layer_index = rand @dna.size
+				crossing_layer_index = @random.rand @dna.size
 
 				source_chromosomes = other_dna[ crossing_layer_index ]
 				target_chromosomes = @dna[ crossing_layer_index ]
 
-				chromosome_index = rand target_chromosomes.size
+				chromosome_index = @random.rand target_chromosomes.size
 
 				source_chromosome = source_chromosomes[ chromosome_index ]
 				target_chromosome = target_chromosomes[ chromosome_index ]
