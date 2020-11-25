@@ -268,12 +268,12 @@ module YAGA
 		end
 
 		private def process_evolution : Void
-			# Replace all bots with selection
-			current_selection = 0 # Optimization: `@selection[ current_selection % @selection_bots ]` works slower
+			# Replace all bots with copied selection
+			selection_index = 0 # Optimization: `@selection[ current_selection % @selection_bots ]` works slower
 			@bots.each{|bot|
-				bot.replace @selection[ current_selection ]
-				current_selection += 1
-				current_selection -= @selection_bots if current_selection >= @selection_bots
+				bot.replace @selection[ selection_index ]
+				selection_index += 1
+				selection_index -= @selection_bots if selection_index >= @selection_bots
 			}
 
 			crossover if @crossover_enabled
@@ -306,7 +306,6 @@ module YAGA
 			}
 
 			max_index < SIMULATIONS_HISTORY * 0.5 && ( min == max || min_index > SIMULATIONS_HISTORY * 0.6 && 100 - min * 100 / max > 20 )
-			# max_index < SIMULATIONS_HISTORY * 0.5 && min_index > SIMULATIONS_HISTORY * 0.6 && 100 - min * 100 / max > 20
 		end
 	end
 
