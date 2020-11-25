@@ -286,6 +286,27 @@ population.train_world( goal: 1.2, generation_cap: 10000 ){|bots, generation|
 }
 ```
 
+### 10. Genetic functions
+
+If you'd like to use your own genetic functions it is possible to override the default ones or create the inherited class:
+
+```crystal
+class CustomPopulation < YAGA::Population( MyDNA, Float64 )
+  def crossover : Void
+    # Write your crossover function here
+  end
+
+  def mutate : Void
+    # Write your mutation algorithm here
+  end
+
+  def finalize_evolution : Void
+    # By default, this overrides last 5 bots to prevent stagnation
+    # You can leave it empty if it is not needed in your case
+  end
+end
+```
+
 ## Development
 
 All PRs are welcome!
