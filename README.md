@@ -8,6 +8,31 @@ YAGA is a genetic multilayer algorithm supporting different classes between laye
 * It can be used to train your models before production with `Population` class or to run the model with `Bot` class in production
 * Saving and loading the model saves and loads the state of `Operation`s in each layer into JSON
 
+## Index
+
+* [Installation](#installation)
+* [Usage](#usage)
+   1. [Require the engine](#1-require-the-engine)
+   2. [Compile genome model](#2-compile-genome-model)
+   3. [Prepare the data](#3-prepare-the-data)
+   4. [Create population based on compiled genome](#4-create-population-based-on-compiled-genome)
+      * [Generic parameters](#generic-parameters)
+      * [Initialization parameters (with defaults)](#initialization-parameters-with-defaults)
+   5. [Train bots](#5-train-bots)
+      * [Version 1: `#train_each`](#version-1-train_each)
+      * [Version 2: `#train_world`](#version-2-train_world)
+      * [Notes](#notes)
+   6. [Take the leader](#6-take-the-leader)
+   7. [Save/Load the state](#7-saveload-the-state)
+   8. [Exploitation](#8-exploitation)
+      * [Version 1: `#simulate_each`](#version-1-simulate_each)
+      * [Version 2: `#simulate_world`](#version-2-simulate_world)
+   9. [Population Callbacks](#9-population-callbacks)
+   10. [Genetic functions](#10-genetic-functions)
+* [Development](#development)
+* [Contributing](#contributing)
+* [Contributors](#contributors)
+
 ## Installation
 
 1. Add the dependency to your `shard.yml`:
@@ -83,19 +108,32 @@ Fill the inputs and outputs somehow (for example it can be the [horizontal and v
 
 ```crystal
 random = Random.new
-population = YAGA::Population( BinaryGenome, UInt32 ).new 256_u32, 12_u32, random
+population = YAGA::Population( BinaryGenome, UInt32 ).new 64_u32, 8_u32, 10_u8, true, random
 ```
 
-Generic parameters:
+It is also available to initialize population with named arguments:
+
+```crystal
+random = Random.new
+population = YAGA::Population( BinaryGenome, UInt32 ).new total_bots: 64_u32,
+                                                          selection_bots: 8_u32,
+                                                          mutation_percent: 10_u8,
+                                                          crossover_enabled: true,
+                                                          random: random
+```
+
+#### Generic parameters
 
 * `BinaryGenome` - the compiled genome class name (required)
 * `UInt32` - the type of the fitness value (any `Number` type) (required) _Please see different examples why it is here_
 
-Initialization parameters:
+#### Initialization parameters (with defaults)
 
-* `256_u32` - total population amount (optional)
-* `12_u32` - selection amount that will be chosen as best (optional) (see [Genetic Algorithm](https://wiki2.org/en/Genetic_algorithm+Newton#Selection) articles to understand what is selection)
-* `random` - if the trainig population needs to be deterministic (see [Example 3 - Snake Game](examples/snake_game)) (optional, default - internal random based on the system seed)
+`total_bots`: `64_u32` - total population amount
+`selection_bots`: `8_u32` - selection amount that will be chosen as best (see [Genetic Algorithm](https://wiki2.org/en/Genetic_algorithm+Newton#Selection) articles to understand what is selection)
+`mutation_percent`: `10_u8` - mutation percent (see [Genetic Algorithm](https://wiki2.org/en/Genetic_algorithm+Newton#Selection) articles to understand what is mutation)
+`crossover_enabled`: `true` - set it to `false` if crossover action should be disabled
+`random`: `Random::DEFAULT` - if the trainig population needs to be deterministic (see [Example 3 - Snake Game](examples/snake_game))
 
 ### 5. Train bots
 
@@ -169,7 +207,7 @@ simulations_passed = population.train_world( goal, generation_cap ){|bots, gener
 p simulations_passed: simulations_passed # Amount of simulations
 ```
 
-#### Note
+#### Notes
 
 * You can see the difference in [Example 1 - Horizontal-Vertical](examples/horizontal_vertical)
 * [Example 2 - Quadratic Equation](examples/quadratic_equation) is written only with `#train_each`
