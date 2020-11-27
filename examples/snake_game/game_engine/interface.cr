@@ -10,7 +10,7 @@ module Game
 	# class Interface < Tilerender::TCP
 	class Interface < Tilerender::CommandLine
 		def wall( x : UInt16, y : UInt16 ) : Void
-			background x, y, :white
+			background x, y, :gray
 		end
 
 		def food( x : UInt16, y : UInt16 ) : Void

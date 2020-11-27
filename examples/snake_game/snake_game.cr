@@ -47,7 +47,7 @@ population_size = 256_u32
 selection_size = 12_u32
 random_init = 3333
 
-fields = StaticArray( Game::Field, 8 ).new{ |index| Game::Field.new( *playground_params, Random.new( random_init + index ) ).tap &.hide }
+fields = StaticArray( Game::Field, 8 ).new{ |index| Game::Field.new *playground_params, Random.new( random_init + index ) }
 
 population = YAGA::Population( SnakeGenetic::DNA, UInt32 ).new( population_size, selection_size, 75_u8, random: Random.new( random_init ) ){|index|
 	field_index = index % playground_bots_count
@@ -68,7 +68,7 @@ else
 	population.bots.each &.replace( loaded_snake )
 end
 
-simulation_field = fields.first.tap{ |field| field.show; field.random = Random.new }
+simulation_field = fields.first.tap{ |field| field.show; field.random = Random::DEFAULT }
 simulation_bots = population.bots.first playground_bots_count
 
 population.before_simulation{

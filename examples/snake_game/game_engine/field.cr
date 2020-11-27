@@ -11,7 +11,7 @@ module Game
 			Exhaustion = 0
 		end
 
-		Interface = Game::Interface.new
+		Interface = Game::Interface.new.tap &.hide
 
 		getter snakes
 		setter random
