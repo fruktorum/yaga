@@ -7,10 +7,12 @@ macro selection_fitness( bots, selection_size )
 	{{ bots }}.map( &.fitness ).sort.reverse.first {{ selection_size }}
 end
 
-def run_simulation( field : Game::Field ) : Void
+def run_simulation( field : Game::Field, sync : Channel( Bool )? = nil ) : Void
 	while field.snakes.size > 0
 		field.tick
 	end
+
+	sync.try &.send( true )
 end
 
 def train( fields : StaticArray, population : YAGA::Population ) : Void
@@ -24,7 +26,11 @@ def train( fields : StaticArray, population : YAGA::Population ) : Void
 
 	population.after_simulation{ |generation| p generation: "#{ generation }/#{ target_generation }", steps: population.bots.max_by( &.fitness ).as( Game::Snake ).steps_alive, target: target_fitness, fitness: selection_fitness( population.bots, population.selection.size ) }
 
-	population.train_world( target_fitness, target_generation ){ |bots| fields.each{ |field| run_simulation field } }
+	population.train_world( target_fitness, target_generation ){|bots|
+		waiting = Channel( Bool ).new
+		fields.each{ |field| spawn run_simulation field, waiting }
+		fields.each{ waiting.receive }
+	}
 
 	best = population.bots.max_by( &.fitness ).as Game::Snake
 	puts "\n", best.to_json
@@ -39,12 +45,11 @@ playground_bots_count = 32
 
 population_size = 256_u32
 selection_size = 12_u32
+random_init = 3333
 
-random = Random.new 3333
+fields = StaticArray( Game::Field, 8 ).new{ |index| Game::Field.new( *playground_params, Random.new( random_init + index ) ).tap &.hide }
 
-fields = StaticArray( Game::Field, 8 ).new{ Game::Field.new( *playground_params, random ).tap &.hide }
-
-population = YAGA::Population( SnakeGenetic::DNA, UInt32 ).new( population_size, selection_size, 75_u8, random: random ){|index|
+population = YAGA::Population( SnakeGenetic::DNA, UInt32 ).new( population_size, selection_size, 75_u8, random: Random.new( random_init ) ){|index|
 	field_index = index % playground_bots_count
 
 	x = ( field_index * 16 - (field_index // 8) * 128 + 11 ).to_u16 # 11, 27, 43, 59, 75, 91, 107, 123, 11, 27, 43, 59, 75, 91, 107, 123, 11, 27, 43, 59, 75, 91, 107, 123, 11, 27, 43, 59, 75, 91, 107, 123
