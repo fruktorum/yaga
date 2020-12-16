@@ -188,6 +188,10 @@ Tree:
 
 There is one empty leaf. It means that bot's architecture is not 100% optimal and chromosome length can be decreased at least by 1 (from 14 to 13 genes).
 
+Parse the tree:
+
+![2 + ( x * ( -(-x + 5) ) ) = 2 + ( x * (x - 5) ) = 2 + x ^ 2 - 5x](https://latex.codecogs.com/gif.latex?2%20&plus;%20%28%20x%20*%20%28%20-%20%28-x%20&plus;%205%29%20%29%20%29%20%3D%202%20&plus;%20%28x%20*%20%28x%20-%205%29%29%20%3D%202%20&plus;%20x%5E2%20-%205x "2 + ( x * ( -(-x + 5) ) ) = 2 + ( x * (x - 5) ) = 2 + x ^ 2 - 5x")
+
 ## Actual function used in example
 
 ![y = x ^ 2 - 5x + 2](https://latex.codecogs.com/gif.latex?y%20%3D%20x%5E%7B2%7D%20-%205x%20&plus;%202 "y = x ^ 2 - 5x + 2")
