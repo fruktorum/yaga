@@ -9,6 +9,21 @@ Try to find the formula by array of it results.
 
 Model builds the syntax tree of the function ![y = f(x)](https://latex.codecogs.com/gif.latex?y%20%3D%20f%28x%29 "y = f(x)") using its own chromosome.
 
+## Index
+
+* [Data explanation](#data-explanation)
+   * [Equation](#equation)
+* [Genetic modelling](#genetic-modelling)
+   1. [Initialization](#1-initialization)
+   2. [Extend existing chromosomes](#2-extend-existing-chromosomes)
+   3. [Compile the model](#3-compile-the-model)
+   4. [Initialize the population](#4-initialize-the-population)
+   5. [Train bots](#5-train-bots)
+   6. [Analytics](#6-analytics)
+   7. [Usage](#7-usage)
+* [Genetic solutions](#genetic-solutions)
+* [Actual function used in example](#actual-function-used-in-example)
+
 ## Data explanation
 
 * We have an unknown function
@@ -22,6 +37,8 @@ Model builds the syntax tree of the function ![y = f(x)](https://latex.codecogs.
 All available parts of a "chromosome" and building mechanics are shown in the source file. More detailed description how it works can be found in [articles](https://ruslanspivak.com/lsbasi-part7).
 
 ## Genetic modelling
+
+### 1. Initialization
 
 ```crystal
 # Used for MSE calculations - prevent Arithmetic Overflow error
@@ -37,6 +54,8 @@ require "yaga"
 require "./genetic/equation"
 ```
 
+### 2. Extend existing chromosomes
+
 Equation works with Float64 but in term of challenge we should use UInt16 for input and UInt64 for output.
 
 Also the challenge says that we have a quadratic equation, so we do not need a complete set of functions provided by `Equation`.
@@ -44,7 +63,7 @@ Also the challenge says that we have a quadratic equation, so we do not need a c
 So we need to extend `Equation` for a bit; it also speeds up performance.
 
 ```crystal
-class QuadraticEquation < Equation
+class QuadraticEquation < YAGA::Chromosomes::Equation
   # Reduce chromosome size from defaults to 15
   # And use only specific functions parts: Neg, Sum, Mul, Const(1), Const(2), x
   def initialize( num_inputs : Int32 )
@@ -58,72 +77,55 @@ class QuadraticEquation < Equation
 end
 ```
 
-Compile the model.
+### 3. Compile the model
 
 ```crystal
 YAGA::Genome.compile(
-  QuadraticGenome, # Name of new model
+  QuadraticGenome, # Name of the new model
 
-  # Inputs type        Inputs size
-  Array( UInt16 )    , 1               ,
+  # Inputs type    Inputs size
+  Array( UInt16 ), 1          ,
 
   # Activator          Activations type  Outputs size
   { QuadraticEquation, Array( Int64 )  , 1            }
 )
 ```
 
-Initialize the population based on this model.
+### 4. Initialize the population
 
 ```crystal
-#                                                    Population, Selection
-population = YAGA::Population( QuadraticGenome ).new 256_u32   , 8_u32
+#                                                             Population, Selection, Mutation Percent
+population = YAGA::Population( QuadraticGenome, Float64 ).new 256_u32   , 12_u32   , 100_u8
 ```
 
-Train bots.
+### 5. Train bots
+
+Please see [train.cr](train.cr) source for the full training process.
+
+In short:
 
 ```crystal
-simulations_cap = 30000
+# Pass all inputs/outputs (inner loop) via each bot (outer loop)
+population.train_each( 1, simulations_cap ){|bot|
+  # Use inversed Mean Squared Error for the fitness value
+  mse = BigFloat.new 0
 
-# For the progress
-bar = ProgressBar.new( ( simulations_cap * population.total_bots ).to_i )
+  inputs.each_with_index{|input, index|
+    output = inputs[ index ]
 
-# Cache for max MSE that some bot had
-max_mse = BigFloat.new 0
+    # Assume that 'input' is UInt16, so pass the array
+    # Because result of the function is array with only one element, use it explicitly
+    activation = bot.activate( [ input ] ).first
 
-# Set "1" for fitness because of MSE: max fitness can be achieved when bot's results
-# are fully match with function's results. This means bot found this function,
-# its error equals 0 and fitness equals 1.
-simulations = population.train( 1, simulations_cap ){|bot|
-  mse = BigFloat.new 0 # MSE can be huge in this example. Very huge.
-
-  8.times{
-    input = rand 128_u16
-    output = f input
-
-    # Input is a scalar. System needs a vector.
-    # System' output is a vector. MSE needs scalar.
-    # Wrap input in brackets and get first element from the output.
-    activation = bot.activate( [ input ] )[ 0 ]
-
-    # MSE = sum_per_elements( ( actual - prediction ) ^ 2 )
-    mse += ( output - activation ).to_big_f ** 2
+    mse += ( ( output - activation ).to_big_f ** 2 ) / inputs.size
   }
 
-  max_mse = mse if max_mse < mse
-
-  bar.inc
-
-  # We calculated MSE.
-  # But we need a fitness of the bot that can be presented like 1 / MSE.
-  # Because MSE can be 0, add 1 to denominator to prevent division by zero.
-  # Result is the value between 0 and 1.
+  # Result of the 'train_each' block should be the fitness of the bot
   ( 1 / ( mse + 1 ) ).to_f64
 }
-
-bar.print
-
-p max_mse: max_mse, simulations_passed: simulations
 ```
+
+### 6. Analytics
 
 Show info about a top bot (winner).
 
@@ -136,18 +138,19 @@ Show info about a top bot (winner).
 ```crystal
 bot = population.selection.first
 
-p genome: bot.genome.genes[ 0 ].map( &.weights )
+p genes: bot.genome.dna.first.first.genes
 p generation: bot.generation, max_fitness: bot.fitness, brain_size: bot.brain_size
+p bot.to_json
 ```
 
-Test bot predictions.
+### 7. Usage
 
 ```crystal
 32.times{
-	input = rand 128_u16
-	output = f input
+  input = rand 128_u16
+  output = f input
 
-	p input: input, prediction: bot.activate( [ input ] )[ 0 ], actual: output
+  p input: input, prediction: bot.activate( [ input ] )[ 0 ], actual: output
 }
 ```
 
