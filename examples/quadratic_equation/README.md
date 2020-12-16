@@ -194,6 +194,8 @@ Parse the tree:
 
 ## Actual function used in example
 
+It is placed to [data.cr](data.cr) in current example.
+
 ![y = x ^ 2 - 5x + 2](https://latex.codecogs.com/gif.latex?y%20%3D%20x%5E%7B2%7D%20-%205x%20&plus;%202 "y = x ^ 2 - 5x + 2")
 
 ```crystal

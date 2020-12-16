@@ -136,11 +136,11 @@ population = YAGA::Population( BinaryGenome, UInt32 ).new total_bots: 64_u32,
 
 #### Initialization parameters (with defaults)
 
-`total_bots`: `64_u32` - total population amount
-`selection_bots`: `8_u32` - selection amount that will be chosen as best (see [Genetic Algorithm](https://wiki2.org/en/Genetic_algorithm+Newton#Selection) articles to understand what is selection)
-`mutation_percent`: `10_u8` - mutation percent (see [Genetic Algorithm](https://wiki2.org/en/Genetic_algorithm+Newton#Selection) articles to understand what is mutation)
-`crossover_enabled`: `true` - set it to `false` if crossover action should be disabled
-`random`: `Random::DEFAULT` - if the trainig population needs to be deterministic (see [Example 3 - Snake Game](examples/snake_game))
+* `total_bots`: `64_u32` - total population amount
+* `selection_bots`: `8_u32` - selection amount that will be chosen as best (see [Genetic Algorithm](https://wiki2.org/en/Genetic_algorithm+Newton#Selection) articles to understand what is selection)
+* `mutation_percent`: `10_u8` - mutation percent (see [Genetic Algorithm](https://wiki2.org/en/Genetic_algorithm+Newton#Selection) articles to understand what is mutation)
+* `crossover_enabled`: `true` - set it to `false` if crossover action should be disabled
+* `random`: `Random::DEFAULT` - if the trainig population needs to be deterministic (see [Example 3 - Snake Game](examples/snake_game))
 
 ### 5. Train bots
 
@@ -225,12 +225,12 @@ p simulations_passed: simulations_passed # Amount of simulations
 
 ```crystal
 bot = population.selection.first
-genes = bot.genome.chromosome_layers.map{ |chromosomes| chromosomes.map{ |chromosome| chromosome.genes } }
+dna_genes = bot.genome.dna.map{ |chromosomes| chromosomes.map{ |chromosome| chromosome.genes } }
 
-p genome: genes,
+p genome: dna_genes,
   generation:  bot.generation, # Bot generation - on what simulation appeared bot's genome state
   max_fitness: bot.fitness,    # Bot's personal training fitness result (on the last simulation)
-  brain_size:  bot.brain_size  # Number of genes
+  brain_size:  bot.brain_size  # Total number of genes
 ```
 
 ### 7. Save/Load the state
@@ -242,7 +242,7 @@ genome = best.to_json
 p genome
 
 # To restore genome - just say the bot to read json
-bot = YAGA::Bot( SnakeGenetic::DNA, UInt32 ).from_json genome
+bot = YAGA::Bot( BinaryGenome, UInt32 ).from_json genome
 
 # To restore the same genome for all population - apply the loaded bot's genome to this
 population.bots.each &.replace( bot )
