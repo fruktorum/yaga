@@ -108,6 +108,13 @@ Fill the inputs and outputs somehow (for example it can be the [horizontal and v
 
 ```crystal
 random = Random.new
+
+# Arguments are:
+# 1. Total Population
+# 2. Selection
+# 3. Mutation Chance
+# 4. Should crossover be enabled
+# 5. Custom random for deterministic behaviour
 population = YAGA::Population( BinaryGenome, UInt32 ).new 64_u32, 8_u32, 10_u8, true, random
 ```
 
