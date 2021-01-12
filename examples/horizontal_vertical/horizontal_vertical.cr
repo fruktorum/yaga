@@ -9,7 +9,7 @@ require "./train"
 ### PREPARE DATA
 
 require "./dna"
-population = YAGA::Population( BinaryGenome, UInt8 ).new 256_u32, 12_u32, 100_u8
+population = YAGA::Population( BinaryGenome, UInt8 ).new 256, 12, 100
 data = Data.new
 
 ### TRAINING

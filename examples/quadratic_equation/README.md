@@ -95,7 +95,7 @@ YAGA::Genome.compile(
 
 ```crystal
 #                                                             Population, Selection, Mutation Percent
-population = YAGA::Population( QuadraticGenome, Float64 ).new 256_u32   , 12_u32   , 100_u8
+population = YAGA::Population( QuadraticGenome, Float64 ).new 256       , 12       , 100
 ```
 
 ### 5. Train bots

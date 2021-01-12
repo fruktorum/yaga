@@ -49,7 +49,7 @@ random_init = 3333
 
 fields = StaticArray( Game::Field, 8 ).new{ |index| Game::Field.new *playground_params, Random.new( random_init + index ) }
 
-population = YAGA::Population( SnakeGenetic::DNA, UInt32 ).new( population_size, selection_size, 75_u8, random: Random.new( random_init ) ){|index|
+population = YAGA::Population( SnakeGenetic::DNA, UInt32 ).new( population_size, selection_size, 75, random: Random.new( random_init ) ){|index|
 	field_index = index % playground_bots_count
 
 	x = ( field_index * 16 - (field_index // 8) * 128 + 11 ).to_u16 # 11, 27, 43, 59, 75, 91, 107, 123, 11, 27, 43, 59, 75, 91, 107, 123, 11, 27, 43, 59, 75, 91, 107, 123, 11, 27, 43, 59, 75, 91, 107, 123

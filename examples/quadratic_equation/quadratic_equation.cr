@@ -20,7 +20,7 @@ require "./train"
 ### PREPARE DATA
 
 require "./dna"
-population = YAGA::Population( QuadraticGenome, Float64 ).new 256_u32, 12_u32, 100_u8
+population = YAGA::Population( QuadraticGenome, Float64 ).new 256, 12, 100
 
 # Using only 3 pairs of values (points) for the function recognition
 inputs = Array( UInt16 ){ 7, 48, 112 }      # x1, x2, x3

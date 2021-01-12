@@ -195,7 +195,7 @@ To see all valid structure for this lesson please see the [Snake DNA file](genet
 
 ## Training
 
-The training process is not much different from previous examples. Please see the Snake Game [training method](snake_game.cr#L13) itself for detailed explanation.
+The training process is not much different from previous examples. Please see the Snake Game [training method](snake_game.cr#L18) itself for detailed explanation.
 
 The only thing is the example uses `population.train_world( fitness, generation ){ |bots| }` function that splits training by simulations.
 

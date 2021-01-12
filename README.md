@@ -115,16 +115,16 @@ random = Random.new
 # 3. Mutation Chance
 # 4. Should crossover be enabled
 # 5. Custom random for deterministic behaviour
-population = YAGA::Population( BinaryGenome, UInt32 ).new 64_u32, 8_u32, 10_u8, true, random
+population = YAGA::Population( BinaryGenome, UInt32 ).new 64, 8, 10, true, random
 ```
 
 It is also available to initialize population with named arguments:
 
 ```crystal
 random = Random.new
-population = YAGA::Population( BinaryGenome, UInt32 ).new total_bots: 64_u32,
-                                                          selection_bots: 8_u32,
-                                                          mutation_percent: 10_u8,
+population = YAGA::Population( BinaryGenome, UInt32 ).new total_bots: 64,
+                                                          selection_bots: 8,
+                                                          mutation_percent: 10,
                                                           crossover_enabled: true,
                                                           random: random
 ```
