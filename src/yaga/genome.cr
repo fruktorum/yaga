@@ -3,15 +3,22 @@ require "./chromosome"
 module YAGA
 
 	abstract class Genome( T, U )
-		MUTATION_LAYERS_RANGE = 1_u8 .. 2_u8
-		MUTATION_CHROMOSOMES_COUNT = 4_u8
-
-		CROSSOVER_CHROMOSOMES_COUNT = 8_u8
-
 		macro compile( name, inputs_type, inputs_size, *layers )
 			class {{ name }} < ::YAGA::Genome( {{ inputs_type }}, {{ layers.last[ 1 ] }} )
 				alias ChromosomesUnion = {% for layer, index in layers %} StaticArray( {{ layer[ 0 ] }}, {{ layer[ 2 ] }} ) {% if index < layers.size - 1 %} | {% end %} {% end %}
 				alias LayersUnion = {% for layer in layers %} {{ layer[ 1 ] }} | {% end %} {{ inputs_type }}
+
+				# At least 1 chromosome and at most 8 chromosomes should be crossovered
+				# depending on the total chromosomes quantity in the DNA
+				CROSSOVER_CHROMOSOMES_COUNT = {% result = 0 %} {% for layer in layers %} {% result += layer[ 2 ] %} {% end %} {% result //= 2 %} {{ result > 8 ? 8 : result == 0 ? 1 : result }}_u8
+
+				# At least 1 layer and at most 2 layers should be mutated
+				# depending on the total layers quantity in the DNA
+				MUTATION_LAYERS_RANGE = 1_u8 .. {{ layers.size > 1 ? 2 : 1 }}_u8
+
+				# At least 1 chromosome and at most 4 chromosomes should be mutated
+				# depending on the total chromosomes quantity in the DNA
+				MUTATION_CHROMOSOMES_COUNT = {% result = 0 %} {% for layer in layers %} {% result += layer[ 2 ] %} {% end %} {% result //= 4 %} {{ result > 4 ? 4 : result == 0 ? 1 : result }}_u8
 
 				@dna : StaticArray( ChromosomesUnion, {{ layers.size }} )
 				@activation_layers : StaticArray( LayersUnion, {{ layers.size + 1 }} )
@@ -117,17 +124,17 @@ module YAGA
 		end
 
 		def mutate : Void
-			@random.rand( MUTATION_LAYERS_RANGE ).times{
+			@random.rand( {{ @type.id + "::MUTATION_LAYERS_RANGE" }} ).times{
 				chromosomes = @dna.sample @random
 				chromosome = chromosomes.sample @random
-				MUTATION_CHROMOSOMES_COUNT.times{ chromosome.mutate }
+				{{ @type.id + "::CROSSOVER_CHROMOSOMES_COUNT" }}.times{ chromosome.mutate }
 			}
 		end
 
 		def crossover( other : Genome( T, U ) ) : Void
 			other_dna = other.dna
 
-			CROSSOVER_CHROMOSOMES_COUNT.times{
+			{{ @type.id + "::CROSSOVER_CHROMOSOMES_COUNT" }}.times{
 				crossing_layer_index = @random.rand @dna.size
 
 				source_chromosomes = other_dna[ crossing_layer_index ]
