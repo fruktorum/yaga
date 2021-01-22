@@ -12,4 +12,4 @@ FROM build AS examples
 
 RUN crystal build --no-debug --release --static --stats -o /build/horizontal_vertical examples/horizontal_vertical/horizontal_vertical.cr && \
     crystal build --no-debug --release --static --stats -o /build/quadratic_equation examples/quadratic_equation/quadratic_equation.cr && \
-    crystal build --no-debug --release --static --stats -o /build/snake_game examples/snake_game/snake_game.cr
+    crystal build --no-debug --release --static --stats -D preview_mt -o /build/snake_game examples/snake_game/snake_game.cr
