@@ -5,6 +5,10 @@ class QuadraticEquation < YAGA::Chromosomes::Equation
 		super @num_inputs, @layer_index, @chromosome_index, 15_u8, Array( UInt8 ){ 0, 1, 2, 3, 4, 5 }
 	end
 
+	def initialize( pull : JSON::PullParser )
+		super
+	end
+
 	# Instead of floats, use UInt16 as inputs and Int64 for outputs (output can be really huge)
 	def activate( inputs : Array( UInt16 ) ) : Int64
 		@tree.eval( inputs[ 0 ].to_f64 ).to_i64

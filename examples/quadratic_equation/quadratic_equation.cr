@@ -35,17 +35,20 @@ puts "\n\e[0;32mFinished!\e[0m"
 ### ANALYTICS
 
 best_bot = population.selection.first
+best_dna = best_bot.to_json
 
 p genes: best_bot.genome.dna.first.first.genes
-puts best_bot.to_json
+puts best_dna
 p simulations_passed: simulations_passed, generation: best_bot.generation, max_fitness: best_bot.fitness, brain_size: best_bot.brain_size
 
 puts
 
 ### EXPLOITATION
 
+new_bot = YAGA::Bot( QuadraticGenome, Float64 ).from_json best_dna
+
 10.times{
 	input = rand 128_u16
 	output = Data.f input
-	p input: input, prediction: best_bot.activate( [ input ] )[ 0 ], actual: output
+	p input: input, prediction: new_bot.activate( [ input ] )[ 0 ], actual: output
 }

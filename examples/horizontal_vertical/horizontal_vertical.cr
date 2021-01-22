@@ -21,8 +21,9 @@ puts "\n\e[0;32mFinished!\e[0m"
 ### ANALYTICS
 
 best_bot = population.selection.first
+best_dna = best_bot.to_json
 
-puts best_bot.to_json
+puts best_dna
 p simulations_passed: simulations_passed, generation: best_bot.generation, max_fitness: best_bot.fitness, brain_size: best_bot.brain_size
 
 puts
@@ -35,5 +36,6 @@ gets
 ### EXPLOITATION
 
 require "./usage"
-simulate population, data, best_bot
-p output: best_bot.activate( data.inputs.sample.tap{ |input| p input: input } )
+bot = YAGA::Bot( BinaryGenome, UInt8 ).from_json best_dna
+simulate population, data, bot
+p output: bot.activate( data.inputs.sample.tap{ |input| p input: input } )
