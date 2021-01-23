@@ -87,7 +87,7 @@ module YAGA
 			end
 
 			def randomize : Void
-				@genes.each_index{ |index| @genes[ index ] = @command_range.sample @random }
+				@genes.map!{ @command_range.sample @random }
 				@tree.parse @genes
 			end
 
@@ -98,7 +98,7 @@ module YAGA
 
 			def replace( other : YAGA::Chromosome ) : Void
 				other_genes = other.genes.as T
-				@genes.each_index{ |index| @genes[ index ] = other_genes[ index ] }
+				@genes.map_with_index!{ |_, index| other_genes[ index ] }
 				@tree.parse @genes
 			end
 
