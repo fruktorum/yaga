@@ -7,7 +7,7 @@ module YAGA
 	module Chromosome( T, U, V )
 		getter genes, num_inputs, layer_index, chromosome_index
 
-		@random : Random = Random.new
+		@random : Random = Random::DEFAULT
 
 		@genes : T
 		@num_inputs : UInt32
