@@ -12,11 +12,3 @@ services:
       - '../tilerender:/app/tilerender'
     logging:
       driver: none
-
-  examples:
-    image: yaga:examples
-    build:
-      context: .
-      target: examples
-    logging:
-      driver: none
