@@ -4,10 +4,10 @@ Try to find the formula by array of it results.
 
 * Inputs (1 activation): `x`
 * Prediction (1 activation): `y`
-* Goal: find a formula tree for ![y = f(x)](https://latex.codecogs.com/gif.latex?y%20%3D%20f%28x%29 "y = f(x)")
-* Loss: MSE algorithm ![(1 / N) sum( (prediction - actual) ** 2 )](https://latex.codecogs.com/gif.latex?%5Cfrac%7B1%7D%7BN%7D%20%5Csum_%7Bi%20%3D%201%7D%5E%7BN%7D%20%28prediction_i%20-%20actual_i%29%5E%7B2%7D "(1 / N) sum( (prediction - actual) ** 2 )"), where `N` is amount of training values.
+* Goal: find a formula tree for ![y = f(x)](https://latex.codecogs.com/gif.latex?y%3Df%28x%29 "y = f(x)")
+* Loss: MSE algorithm ![(1 / N) sum( (prediction - actual) ** 2 )](https://latex.codecogs.com/gif.latex?%5Cfrac%7B1%7D%7BN%7D%5Csum_%7Bi%3D1%7D%5E%7BN%7D%28prediction_i-actual_i%29%5E2 "(1 / N) sum( (prediction - actual) ** 2 )"), where `N` is amount of training values.
 
-Model builds the syntax tree of the function ![y = f(x)](https://latex.codecogs.com/gif.latex?y%20%3D%20f%28x%29 "y = f(x)") using its own chromosome.
+Model builds the syntax tree of the function ![y = f(x)](https://latex.codecogs.com/gif.latex?y%3Df%28x%29 "y = f(x)") using its own chromosome.
 
 ## Index
 
@@ -190,13 +190,13 @@ There is one empty leaf. It means that bot's architecture is not 100% optimal an
 
 Parse the tree:
 
-![2 + ( x * ( -(-x + 5) ) ) = 2 + ( x * (x - 5) ) = 2 + x ^ 2 - 5x](https://latex.codecogs.com/gif.latex?2%20&plus;%20%28%20x%20*%20%28%20-%20%28-x%20&plus;%205%29%20%29%20%29%20%3D%202%20&plus;%20%28x%20*%20%28x%20-%205%29%29%20%3D%202%20&plus;%20x%5E2%20-%205x "2 + ( x * ( -(-x + 5) ) ) = 2 + ( x * (x - 5) ) = 2 + x ^ 2 - 5x")
+![2 + ( x * ( -(-x + 5) ) ) = 2 + ( x * (x - 5) ) = 2 + x^2 - 5x](https://latex.codecogs.com/gif.latex?2&plus;%28x%28-%28-x&plus;5%29%29%29%3D2&plus;%28x%28x-5%29%29%3D2&plus;x%5E2-5x "2 + ( x * ( -(-x + 5) ) ) = 2 + ( x * (x - 5) ) = 2 + x^2 - 5x")
 
 ## Actual function used in example
 
 It is placed to [data.cr](data.cr) in current example.
 
-![y = x ^ 2 - 5x + 2](https://latex.codecogs.com/gif.latex?y%20%3D%20x%5E%7B2%7D%20-%205x%20&plus;%202 "y = x ^ 2 - 5x + 2")
+![y = x^2 - 5x + 2](https://latex.codecogs.com/gif.latex?y%3Dx%5E2-5x&plus;2 "y = x^2 - 5x + 2")
 
 ```crystal
 def f( x : UInt16 ) : Int64
