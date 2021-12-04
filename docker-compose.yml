@@ -6,9 +6,12 @@ services:
     build:
       context: .
       target: build
-    volumes:
-      - '.:/app/yaga'
-      - '../simple_matrix:/app/simple_matrix'
-      - '../tilerender:/app/tilerender'
+    volumes: [ '.:/app' ]
+    logging:
+      driver: none
+
+  examples:
+    image: yaga:examples
+    build: .
     logging:
       driver: none

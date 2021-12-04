@@ -1,10 +1,10 @@
-FROM <find_an_Alpine_Crystal_or_build_it> AS build
-WORKDIR /app/yaga
+FROM crystallang/crystal:1.2.2-alpine AS build
+WORKDIR /app
 CMD [ "sh" ]
 
 COPY shard.* ./
 
-RUN mkdir -p /build && shards install --ignore-crystal-version
+RUN mkdir -p /build && shards install
 
 COPY . .
 

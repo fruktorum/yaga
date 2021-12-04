@@ -1,6 +1,6 @@
 # YAGA - Yet Another Genetic Algorithm
 
-YAGA is a genetic multilayer algorithm supporting different classes between layers.
+YAGA is a genetic multilayer algorithm supporting different layers types.
 
 * Engine has no dependencies instead of stdlib (only specific operations use it, see the documentation about each)
 * YAGA has been made to support different classes for inputs, outputs and layers (like difference between convolutional and fully connected layers in CNNs)
@@ -32,6 +32,7 @@ YAGA is a genetic multilayer algorithm supporting different classes between laye
 * [Development](#development)
 * [Contributing](#contributing)
 * [Contributors](#contributors)
+* [Thanks](#thanks)
 
 ## Installation
 
@@ -40,7 +41,7 @@ YAGA is a genetic multilayer algorithm supporting different classes between laye
    ```yaml
    dependencies:
      yaga:
-       github: SlayerShadow/yaga
+       github: fruktorum/yaga
    ```
 
 2. Run `shards install`
@@ -365,7 +366,7 @@ All PRs are welcome!
 
 ## Contributing
 
-1. Fork it (<https://github.com/SlayerShadow/yaga/fork>)
+1. Fork it (<https://github.com/fruktorum/yaga/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
@@ -374,3 +375,11 @@ All PRs are welcome!
 ## Contributors
 
 - [SlayerShadow](https://github.com/SlayerShadow) - creator and maintainer
+
+## Thanks
+
+Special thanks to the resources without which nothing like this would have been implemented.
+
+* [Genetic Bots](https://www.youtube.com/watch?v=SfEZSyvbj2w) by foo52ru - _the main idea was born thanks to this video_
+* [Introduction to Genetic Algorithms](https://towardsdatascience.com/introduction-to-genetic-algorithms-including-example-code-e396e98d8bf3) by Vijini Mallawaarachchi - _simple and detailed explanation about how genetic works helped a lot_
+* [Perlin Noise Part 2](https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/perlin-noise-part-2/improved-perlin-noise) by A. Lagae - _example with interpolation function research (and why derivatives are matter) was born with only this great article_

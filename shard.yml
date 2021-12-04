@@ -1,31 +1,23 @@
 name: yaga
-version: 0.1.0
-crystal: 1.1.0-dev
+description: A genetic multilayer algorithm supporting different layers types
+
+version: 1.0.0
+crystal: 1.2.2
 
 authors:
   - SlayerShadow <gawfast@gmail.com>
 
 development_dependencies:
-  shainet:
-    github: NeuraLegion/shainet
-    branch: master
-
-  stumpy_png:
-    github: stumpycr/stumpy_png
-    branch: master
-
   progress:
     github: askn/progress
     branch: master
 
-  matrix:
-    github: Exilor/matrix
-    branch: master
-
   simple_matrix:
-    path: ../simple_matrix
+    github: fruktorum/simple_matrix
+    version: 1.0.0
 
   tilerender:
-    path: ../tilerender
+    github: fruktorum/tilerender
+    version: 1.0.0
 
 license: MIT
