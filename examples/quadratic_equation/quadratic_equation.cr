@@ -17,22 +17,22 @@ require "../../src/yaga/chromosomes/equation"
 require "./data"
 require "./train"
 
-### PREPARE DATA
+# ## PREPARE DATA
 
 require "./dna"
-population = YAGA::Population( QuadraticGenome, Float64 ).new 256, 12, 100
+population = YAGA::Population(QuadraticGenome, Float64).new 256, 12, 100
 
 # Using only 3 pairs of values (points) for the function recognition
-inputs = Array( UInt16 ){ 7, 48, 112 }      # x1, x2, x3
-outputs = Array( Int64 ){ 16, 2066, 11986 } # y1, y2, y3
+inputs = Array(UInt16){7, 48, 112}      # x1, x2, x3
+outputs = Array(Int64){16, 2066, 11986} # y1, y2, y3
 data = Data.new inputs, outputs
 
-### TRAINING
+# ## TRAINING
 
 simulations_passed = Training.train population, data, 30000, false # true for logging
 puts "\n\e[0;32mFinished!\e[0m"
 
-### ANALYTICS
+# ## ANALYTICS
 
 best_bot = population.selection.first
 best_dna = best_bot.to_json
@@ -43,12 +43,12 @@ p simulations_passed: simulations_passed, generation: best_bot.generation, max_f
 
 puts
 
-### EXPLOITATION
+# ## EXPLOITATION
 
-new_bot = YAGA::Bot( QuadraticGenome, Float64 ).from_json best_dna
+new_bot = YAGA::Bot(QuadraticGenome, Float64).from_json best_dna
 
-10.times{
-	input = rand 128_u16
-	output = Data.f input
-	p input: input, prediction: new_bot.activate( [ input ] )[ 0 ], actual: output
+10.times {
+  input = rand 128_u16
+  output = Data.f input
+  p input: input, prediction: new_bot.activate([input])[0], actual: output
 }

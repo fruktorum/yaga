@@ -53,121 +53,117 @@
 require "bit_array"
 
 module YAGA
+  module Chromosomes
+    class BinaryNeuron
+      include Chromosome(BitArray, BitArray, Bool)
 
-	module Chromosomes
+      enum Operation : UInt8
+        Mul
+        Sum
+        Xor
+        InvMul
+        InvSum
+      end
 
-		class BinaryNeuron
-			include Chromosome( BitArray, BitArray, Bool )
+      property operation
 
-			enum Operation : UInt8
-				Mul
-				Sum
-				Xor
-				InvMul
-				InvSum
-			end
+      @operation : Operation
 
-			property operation
+      def initialize(pull : JSON::PullParser)
+        @genes = BitArray.new 0
+        @operation = Operation::Mul
+        @num_inputs = 0
+        @layer_index = 0
+        @chromosome_index = 0
 
-			@operation : Operation
+        buffer = Array(Bool).new
 
-			def initialize( pull : JSON::PullParser )
-				@genes = BitArray.new 0
-				@operation = Operation::Mul
-				@num_inputs = 0
-				@layer_index = 0
-				@chromosome_index = 0
+        pull.read_object { |key|
+          case key
+          when "genes"            then pull.read_array { buffer << pull.read_bool }
+          when "operation"        then @operation = Operation.new pull.read_int.to_u8
+          when "num_inputs"       then @num_inputs = pull.read_int.to_u32
+          when "layer_index"      then @layer_index = pull.read_int.to_u32
+          when "chromosome_index" then @chromosome_index = pull.read_int.to_u32
+          else                         pull.skip
+          end
+        }
 
-				buffer = Array( Bool ).new
+        @genes = BitArray.new @num_inputs.to_i
+        buffer.each_with_index { |value, index| @genes[index] = value }
+      end
 
-				pull.read_object{|key|
-					case key
-						when "genes" then pull.read_array{ buffer << pull.read_bool }
-						when "operation" then @operation = Operation.new pull.read_int.to_u8
-						when "num_inputs" then @num_inputs = pull.read_int.to_u32
-						when "layer_index" then @layer_index = pull.read_int.to_u32
-						when "chromosome_index" then @chromosome_index = pull.read_int.to_u32
-						else pull.skip
-					end
-				}
+      def initialize(@num_inputs, @layer_index, @chromosome_index)
+        @genes = BitArray.new @num_inputs.to_i
+        @operation = Operation.new @random.rand(Operation.names.size.to_u8)
+      end
 
-				@genes = BitArray.new @num_inputs.to_i
-				buffer.each_with_index{ |value, index| @genes[ index ] = value }
-			end
+      def activate(inputs : BitArray) : Bool
+        result = false
 
-			def initialize( @num_inputs, @layer_index, @chromosome_index )
-				@genes = BitArray.new @num_inputs.to_i
-				@operation = Operation.new @random.rand( Operation.names.size.to_u8 )
-			end
+        @genes.each_with_index { |weight, index|
+          if weight
+            case @operation
+            when .mul?
+              return false unless inputs[index]
+              result = true
+            when .inv_mul?
+              return false if inputs[index]
+              result = true
+            when .sum?     then return true if inputs[index]
+            when .inv_sum? then return true unless inputs[index]
+            when .xor?     then result ^= inputs[index]
+            end
+          end
+        }
 
-			def activate( inputs : BitArray ) : Bool
-				result = false
+        result
+      end
 
-				@genes.each_with_index{|weight, index|
-					if weight
-						case @operation
-							when .mul?
-								return false unless inputs[ index ]
-								result = true
-							when .inv_mul?
-								return false if inputs[ index ]
-								result = true
-							when .sum? then return true if inputs[ index ]
-							when .inv_sum? then return true unless inputs[ index ]
-							when .xor? then result ^= inputs[ index ]
-						end
-					end
-				}
+      def randomize : Void
+        @operation = Operation.new @random.rand(Operation.names.size.to_u8)
+        @genes.each_index { |index| @genes[index] = @random.rand(2) == 1 }
+      end
 
-				result
-			end
+      def mutate : Void
+        if @random.rand(2) == 0
+          @operation = Operation.new @random.rand(Operation.names.size.to_u8)
+        else
+          @genes.toggle @random.rand(@genes.size)
+        end
+      end
 
-			def randomize : Void
-				@operation = Operation.new @random.rand( Operation.names.size.to_u8 )
-				@genes.each_index{ |index| @genes[ index ] = @random.rand( 2 ) == 1 }
-			end
+      def replace(other : Chromosome) : Void
+        other_neuron = other.as self
+        @genes.each_index { |index| @genes[index] = other_neuron.genes[index] }
+        @operation = other_neuron.operation
+      end
 
-			def mutate : Void
-				if @random.rand( 2 ) == 0
-					@operation = Operation.new @random.rand( Operation.names.size.to_u8 )
-				else
-					@genes.toggle @random.rand( @genes.size )
-				end
-			end
+      def crossover(other : Chromosome) : Void
+        other_genes = other.genes.as T
 
-			def replace( other : Chromosome ) : Void
-				other_neuron = other.as self
-				@genes.each_index{ |index| @genes[ index ] = other_neuron.genes[ index ] }
-				@operation = other_neuron.operation
-			end
+        slice = @random.rand @genes.size
+        left = @random.rand(2_u8) == 0
 
-			def crossover( other : Chromosome ) : Void
-				other_genes = other.genes.as T
+        @genes.each_index { |index| @genes[index] = index <= slice ? (left ? @genes[index] : other_genes[index]) : (left ? other_genes[index] : @genes[index]) }
+      end
 
-				slice = @random.rand @genes.size
-				left = @random.rand( 2_u8 ) == 0
+      def size : UInt64
+        # Bit length + `@operation`, another configurable parameter
+        @genes.size.to_u64 + 1_u64
+      end
 
-				@genes.each_index{ |index| @genes[ index ] = index <= slice ? ( left ? @genes[ index ] : other_genes[ index ] ) : ( left ? other_genes[ index ] : @genes[ index ] ) }
-			end
+      def same?(other : Chromosome) : Bool
+        super && @operation == other.as(self).operation
+      end
 
-			def size : UInt64
-				# Bit length + `@operation`, another configurable parameter
-				@genes.size.to_u64 + 1_u64
-			end
-
-			def same?( other : Chromosome ) : Bool
-				super && @operation == other.as( self ).operation
-			end
-
-			def to_json( json : JSON::Builder ) : Void
-				json.object{
-					json.field( :genes ){ json.array{ @genes.each{ |gene| json.bool gene } } }
-					json.field( :operation ){ json.number @operation.value }
-					super
-				}
-			end
-		end
-
-	end
-
+      def to_json(json : JSON::Builder) : Void
+        json.object {
+          json.field(:genes) { json.array { @genes.each { |gene| json.bool gene } } }
+          json.field(:operation) { json.number @operation.value }
+          super
+        }
+      end
+    end
+  end
 end

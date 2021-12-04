@@ -42,79 +42,75 @@
 require "./equation_parser/tree"
 
 module YAGA
+  module Chromosomes
+    class Equation
+      include Chromosome(Array(UInt8), Array(Float64), Float64)
 
-	module Chromosomes
+      GENOME_SIZE   = 64_u8
+      COMMAND_RANGE = Array(UInt8).new(14) { |index| index.to_u8 }
 
-		class Equation
-			include Chromosome( Array( UInt8 ), Array( Float64 ), Float64 )
+      @tree : EquationParser::Tree
+      @command_range : Array(UInt8)
 
-			GENOME_SIZE = 64_u8
-			COMMAND_RANGE = Array( UInt8 ).new( 14 ){ |index| index.to_u8 }
+      def initialize(pull : JSON::PullParser)
+        @genes = Array(UInt8).new
+        @tree = EquationParser::Tree.new @genes
+        @command_range = Array(UInt8).new
 
-			@tree : EquationParser::Tree
-			@command_range : Array( UInt8 )
+        @num_inputs = 0
+        @layer_index = 0
+        @chromosome_index = 0
 
-			def initialize( pull : JSON::PullParser )
-				@genes = Array( UInt8 ).new
-				@tree = EquationParser::Tree.new @genes
-				@command_range = Array( UInt8 ).new
+        pull.read_object { |key|
+          case key
+          when "genes"            then pull.read_array { @genes << pull.read_int.to_u8 }
+          when "command_range"    then pull.read_array { @command_range << pull.read_int.to_u8 }
+          when "num_inputs"       then @num_inputs = pull.read_int.to_u32
+          when "layer_index"      then @layer_index = pull.read_int.to_u32
+          when "chromosome_index" then @chromosome_index = pull.read_int.to_u32
+          else                         pull.skip
+          end
+        }
 
-				@num_inputs = 0
-				@layer_index = 0
-				@chromosome_index = 0
+        @tree.parse @genes
+      end
 
-				pull.read_object{|key|
-					case key
-						when "genes" then pull.read_array{ @genes << pull.read_int.to_u8 }
-						when "command_range" then pull.read_array{ @command_range << pull.read_int.to_u8 }
-						when "num_inputs" then @num_inputs = pull.read_int.to_u32
-						when "layer_index" then @layer_index = pull.read_int.to_u32
-						when "chromosome_index" then @chromosome_index = pull.read_int.to_u32
-						else pull.skip
-					end
-				}
+      def initialize(@num_inputs, @layer_index, @chromosome_index, genome_size = GENOME_SIZE, @command_range = COMMAND_RANGE)
+        @genes = Array(UInt8).new(genome_size) { @command_range.sample @random }
+        @tree = EquationParser::Tree.new @genes
+      end
 
-				@tree.parse @genes
-			end
+      def activate(inputs : Array(Float64)) : Float64
+        @tree.eval inputs[@chromosome_index].to_f64
+      end
 
-			def initialize( @num_inputs, @layer_index, @chromosome_index, genome_size = GENOME_SIZE, @command_range = COMMAND_RANGE )
-				@genes = Array( UInt8 ).new( genome_size ){ @command_range.sample @random }
-				@tree = EquationParser::Tree.new @genes
-			end
+      def randomize : Void
+        @genes.map! { @command_range.sample @random }
+        @tree.parse @genes
+      end
 
-			def activate( inputs : Array( Float64 ) ) : Float64
-				@tree.eval inputs[ @chromosome_index ].to_f64
-			end
+      def mutate : Void
+        @genes[@random.rand @genes.size] = @command_range.sample @random
+        @tree.parse @genes
+      end
 
-			def randomize : Void
-				@genes.map!{ @command_range.sample @random }
-				@tree.parse @genes
-			end
+      def replace(other : YAGA::Chromosome) : Void
+        other_genes = other.genes.as T
+        @genes.map_with_index! { |_, index| other_genes[index] }
+        @tree.parse @genes
+      end
 
-			def mutate : Void
-				@genes[ @random.rand @genes.size ] = @command_range.sample @random
-				@tree.parse @genes
-			end
+      def crossover(other : Chromosome) : Void
+        replace other
+      end
 
-			def replace( other : YAGA::Chromosome ) : Void
-				other_genes = other.genes.as T
-				@genes.map_with_index!{ |_, index| other_genes[ index ] }
-				@tree.parse @genes
-			end
-
-			def crossover( other : Chromosome ) : Void
-				replace other
-			end
-
-			def to_json( json : JSON::Builder ) : Void
-				json.object{
-					json.field( :genes ){ json.array{ @genes.each{ |gene| json.number gene } } }
-					json.field( :command_range ){ json.array{ @command_range.each{ |value| json.number value } } }
-					super
-				}
-			end
-		end
-
-	end
-
+      def to_json(json : JSON::Builder) : Void
+        json.object {
+          json.field(:genes) { json.array { @genes.each { |gene| json.number gene } } }
+          json.field(:command_range) { json.array { @command_range.each { |value| json.number value } } }
+          super
+        }
+      end
+    end
+  end
 end
