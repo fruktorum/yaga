@@ -94,7 +94,7 @@ module YAGA
         @tree.parse @genes
       end
 
-      def replace(other : YAGA::Chromosome) : Void
+      def replace(other : Chromosome) : Void
         other_genes = other.genes.as T
         @genes.map_with_index! { |_, index| other_genes[index] }
         @tree.parse @genes
