@@ -4,6 +4,8 @@ require "./node"
 module YAGA
   module EquationParser
     class Tree
+      EPSILON = 1e-12
+
       @stack : Array(Node)
 
       def initialize(buffer : Array(UInt8))
@@ -18,6 +20,8 @@ module YAGA
                         when :neg  then neg(node.children[0]?)
                         when :sum  then sum(node.children[0]?, node.children[1]?)
                         when :mul  then mul(node.children[0]?, node.children[1]?)
+                        when :div  then div(node.children[0]?)
+                        when :exp  then exp(node.children[0]?, node.children[1]?)
                         when :sin  then sin(node.children[0]?)
                         when :cos  then cos(node.children[0]?)
                         when :tan  then tan(node.children[0]?)
@@ -95,6 +99,19 @@ module YAGA
         return value2.result unless value1 && (result1 = value1.result)
 
         result1 * result2
+      end
+
+      private def exp(value1 : Node?, value2 : Node?) : Float64?
+        return unless value1 || value2
+        return value1.not_nil!.result unless value2 && (result2 = value2.result)
+        return value2.result unless value1 && (result1 = value1.result)
+        result1 ** result2
+      end
+
+      private def div(value : Node?) : Float64?
+        return unless value && (result = value.result)
+        return if result.abs < EPSILON
+        1_f64 / result
       end
 
       private def sin(value : Node?) : Float64?

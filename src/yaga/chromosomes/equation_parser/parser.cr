@@ -62,6 +62,12 @@ module YAGA
           {:lge, 1_u8, @buffer[@observer]?, nil}
         when 14 then {:y, 0_u8, nil, nil}
         when 15 then {:z, 0_u8, nil, nil}
+        when 16
+          @observer += 1
+          {:div, 1_u8, @buffer[@observer]?, nil}
+        when 17
+          @observer += 2
+          {:exp, 2_u8, @buffer[@observer - 2]?, @buffer[@observer - 1]?}
         else         {:error, 0_u8, nil, nil}
         end
       end

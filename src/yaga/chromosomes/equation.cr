@@ -4,10 +4,10 @@
 # Inputs: Array( Float64 )
 # Outputs: Float64
 
-# №      0        1          2      3    4    5    6    7    8       9       10       11         12          13      14   15
-# Label  neg     sum        mul     1    2    x    pi   e   sin     cos     tan      lg2        lg10        lge       y    z
-# Arity  1        2          2      0    0    0    0    0    1       1       1        1          1           1        0    0
-# Value -{a}  {a1}+{a2}  {a1}*{a2}  1    2    X    PI   e  sin{a}  cos{a}  tan{a}  log(2){a}  log(10){a}  log(e){a}   Y    Z
+# №      0        1          2      3    4    5    6    7    8       9       10       11         12          13      14   15    16       17
+# Label  neg     sum        mul     1    2    x    pi   e   sin     cos     tan      lg2        lg10        lge       y    z   div      exp
+# Arity  1        2          2      0    0    0    0    0    1       1       1        1          1           1        0    0    1        2
+# Value -{a}  {a1}+{a2}  {a1}*{a2}  1    2    X    PI   e  sin{a}  cos{a}  tan{a}  log(2){a}  log(10){a}  log(e){a}   Y    Z  1/{a}  {a1}^{a2}
 
 # Values declaration:
 # {a} - arguments
