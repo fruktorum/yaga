@@ -101,7 +101,7 @@ module YAGA
 
     getter dna
 
-    @random : Random = Random.new
+    @random : Random = Random::DEFAULT
 
     abstract def activate(inputs : T) : U
 
