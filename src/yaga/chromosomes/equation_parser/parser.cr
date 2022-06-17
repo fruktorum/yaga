@@ -68,7 +68,7 @@ module YAGA
         when 17
           @observer += 2
           {:exp, 2_u8, @buffer[@observer - 2]?, @buffer[@observer - 1]?}
-        else         {:error, 0_u8, nil, nil}
+        else {:error, 0_u8, nil, nil}
         end
       end
     end
