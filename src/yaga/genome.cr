@@ -109,7 +109,7 @@ module YAGA
       generate
     end
 
-    def update_random(@random : Random) : Void
+    def update_random(@random) : Void
       @dna.each &.each(&.update_random @random)
     end
 

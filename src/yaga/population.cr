@@ -37,7 +37,7 @@ module YAGA
     @before_training_action : Proc(UInt64, V, UInt64, Void)?
     @after_training_action : Proc(UInt64, V, UInt64, Void)?
 
-    def initialize(@total_bots : UInt32 = TOTAL_BOTS, @selection_bots : UInt32 = SELECTION_BOTS, @mutation_percent : UInt8 = MUTATION_PERCENT, @crossover_enabled = true, @random = Random::DEFAULT, &block : Int32 -> Bot(T, V))
+    def initialize(@total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS, @mutation_percent = MUTATION_PERCENT, @crossover_enabled = true, @random = Random::DEFAULT, &block : Int32 -> Bot(T, V))
       raise ArgumentError.new("Total bots amount should be greater than or equal to 16, got: #{@total_bots}") if @total_bots < 16
       raise ArgumentError.new("Selection bots amount should be at most half of total bots, got: #{@selection_bots}") if @selection_bots * 2 > @total_bots
 
@@ -51,7 +51,7 @@ module YAGA
       @extra_evolution_bots = @total_bots - @total_bots // 4 - 5..@total_bots - 6
     end
 
-    def initialize(@total_bots : UInt32 = TOTAL_BOTS, @selection_bots : UInt32 = SELECTION_BOTS, @mutation_percent : UInt8 = MUTATION_PERCENT, @crossover_enabled = true, @random = Random::DEFAULT)
+    def initialize(@total_bots = TOTAL_BOTS, @selection_bots = SELECTION_BOTS, @mutation_percent = MUTATION_PERCENT, @crossover_enabled = true, @random = Random::DEFAULT)
       raise ArgumentError.new("Total bots amount should be greater than or equal to 16, got: #{@total_bots}") if @total_bots < 16
       raise ArgumentError.new("Selection bots amount should be at most half of total bots, got: #{@selection_bots}") if @selection_bots * 2 > @total_bots
 
