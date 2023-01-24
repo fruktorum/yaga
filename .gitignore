@@ -1,12 +1,13 @@
 /bin/
 /lib/
 /.shards/
-*.dwarf
 
 core
 shard.lock
 Thumbs.db
 
 .DS_Store
+
+*.dwarf
 
 !**/.keep
