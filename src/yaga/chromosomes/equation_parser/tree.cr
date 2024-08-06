@@ -105,7 +105,9 @@ module YAGA
         return unless value1 || value2
         return value1.not_nil!.result unless value2 && (result2 = value2.result)
         return value2.result unless value1 && (result1 = value1.result)
-        result1 ** result2
+        return 0_f64 if result1 < 0 && result2 - result2.floor != 0
+        result = result1 ** result2
+        result == Float64::INFINITY ? 0_f64 : result
       end
 
       private def div(value : Node?) : Float64?

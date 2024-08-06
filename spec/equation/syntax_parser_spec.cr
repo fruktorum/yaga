@@ -73,14 +73,14 @@ describe YAGA::EquationParser::Tree do
       tree.eval(3).should eq(64)
     end
 
-    it "evals Infinity (y = 1 + 1000000^1000000)" do
+    it "evals 1 (y = 1 + 1000000^1000000)" do
       tree = YAGA::EquationParser::Tree.new [1, 3, 17, 5, 5] of UInt8
-      tree.eval(1000000).should eq(Float64::INFINITY)
+      tree.eval(1000000).should eq(1)
     end
 
-    it "evals Infinity (1000000^???)" do
+    it "evals 1 (1000000^???)" do
       tree = YAGA::EquationParser::Tree.new [17, 17, 17, 5, 5, 5, 5] of UInt8
-      tree.eval(1000000).should eq(Float64::INFINITY)
+      tree.eval(1000000).should eq(1)
     end
 
     it "equals after several operaitons" do

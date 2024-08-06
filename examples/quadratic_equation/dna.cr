@@ -16,9 +16,9 @@ class QuadraticEquation < YAGA::Chromosomes::Equation
 end
 
 YAGA::Genome.compile(
-  # Generated genome class  Inputs type (array)       Inputs size
+  # Generated genome class, Inputs type (array), Inputs size
   QuadraticGenome, Array(UInt16), 1,
 
-  # Activator               Activations type (array)  Outputs size
+  # Activator, Activations type (array), Outputs size
   {QuadraticEquation, Array(Int64), 1}
 )
