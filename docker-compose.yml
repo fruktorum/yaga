@@ -1,12 +1,10 @@
-version: '3.9'
-
 services:
   dev:
     image: yaga
     build:
       context: .
       target: build
-    volumes: [ '.:/app' ]
+    volumes: [ .:/app ]
     logging:
       driver: none
 
