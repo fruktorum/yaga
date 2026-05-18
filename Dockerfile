@@ -2,6 +2,8 @@ FROM crystallang/crystal:1.20.2-alpine AS build
 WORKDIR /app
 CMD [ "sh" ]
 
+RUN apk add --no-cache gmp-static
+
 COPY shard.* ./
 RUN mkdir -p /build && shards install
 
