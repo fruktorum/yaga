@@ -68,7 +68,7 @@ else
   population.bots.each &.replace(loaded_snake)
 end
 
-simulation_field = fields.first.tap { |field| field.show; field.random = Random::DEFAULT }
+simulation_field = fields.first.tap { |field| field.show; field.random = Random.new }
 simulation_bots = population.bots.first playground_bots_count
 
 population.before_simulation {
