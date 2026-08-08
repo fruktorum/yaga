@@ -9,13 +9,10 @@ class TestGenome
     @num_inputs = 0
     @layer_index = 0
     @chromosome_index = 0
-
-    super
   end
 
   def initialize(@num_inputs, @layer_index, @chromosome_index)
     @genes = T.new(16) { rand 0_u8..255_u8 }
-    super
   end
 
   def activate(inputs : U) : V

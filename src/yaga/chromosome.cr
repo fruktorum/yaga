@@ -19,16 +19,6 @@ module YAGA
     abstract def replace(other : Chromosome(T, U, V)) : Void
     abstract def crossover(other : Chromosome(T, U, V)) : Void
 
-    def initialize(pull : JSON::PullParser)
-      @num_inputs = 0
-      @layer_index = 0
-      @chromosome_index = 0
-      super
-    end
-
-    def initialize(@num_inputs, @layer_index, @chromosome_index)
-    end
-
     def update_random(@random) : Void
       randomize
     end
